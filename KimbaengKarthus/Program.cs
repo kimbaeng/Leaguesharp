@@ -46,11 +46,11 @@ namespace Kimbaeng_KarThus
             IgniteSlot = ObjectManager.Player.GetSpellSlot("SummonerDot");
             Q = new Spell(SpellSlot.Q, 875);
             W = new Spell(SpellSlot.W, 1000);
-            E = new Spell(SpellSlot.E, 505);
+            E = new Spell(SpellSlot.E, 550);
             R = new Spell(SpellSlot.R, 20000f);
 
-			Q.SetSkillshot(1f, 160, float.MaxValue, false, SkillshotType.SkillshotCircle);
-            W.SetSkillshot(.5f, 70, float.MaxValue, false, SkillshotType.SkillshotCircle);
+			Q.SetSkillshot(0.66f, 160f, 2000, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0.65f, 100f, 1600f, false, SkillshotType.SkillshotLine);
             E.SetSkillshot(1f, 505, float.MaxValue, false, SkillshotType.SkillshotCircle);
             R.SetSkillshot(3f, float.MaxValue, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
@@ -77,9 +77,11 @@ namespace Kimbaeng_KarThus
             var harassMenu = _menu.AddSubMenu(new Menu("Harass", "Harass"));
             harassMenu.AddItem(new MenuItem("useQHarass", "UseQ").SetValue(true));
             harassMenu.AddItem(new MenuItem("useEHarass", "UseE").SetValue(true));
-            var FreezeMenu = new Menu("Freeze", "Freeze");
+
+            var FreezeMenu = _menu.AddSubMenu(new Menu("Freeze", "Freeze"));
             FreezeMenu.AddItem(new MenuItem("Freeze", "Freeze").SetValue(new KeyBind('Z', KeyBindType.Press)));
             FreezeMenu.AddItem(new MenuItem("string", "Only Attack One Minion key"));
+
             var MiscMenu = _menu.AddSubMenu(new Menu("Misc", "Misc"));
             MiscMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
             MiscMenu.AddItem(new MenuItem("NotifyPing", "Notify Ult Ping").SetValue(true));
@@ -93,7 +95,6 @@ namespace Kimbaeng_KarThus
             drawMenu.AddItem(new MenuItem("drawE", "DrawE").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
 
             Drawing.OnDraw += Drawing_Ondraw;
-            Drawing.OnEndScene += OnEndScene;
             Game.OnUpdate += Game_OnUpdate;
             
             Game.PrintChat("Kimbaeng's Karthus <font color=\"#FF0000\">Loaded</font>");
@@ -174,14 +175,7 @@ namespace Kimbaeng_KarThus
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, E.Range, eValue.Color);
             }
 
-        }
-
-        private static void OnEndScene(EventArgs args)
-        {
-            
-            {
-                //Damage Indicator
-                if (_menu.Item("DrawDmg").GetValue<bool>())
+			if (_menu.Item("DrawDmg").GetValue<bool>())
                 {
                     foreach (var enemy in
                         ObjectManager.Get<Obj_AI_Hero>().Where(ene => !ene.IsDead && ene.IsEnemy && ene.IsVisible))
@@ -191,7 +185,7 @@ namespace Kimbaeng_KarThus
                         Hpi.drawDmg(damage , System.Drawing.Color.Goldenrod);
                     }
                 }
-            }
+
         }
 
         //Trus Logic
@@ -199,7 +193,8 @@ namespace Kimbaeng_KarThus
         {
             if (R.Instance.Level == 0)
                 return;
-            Drawing.DrawText(Drawing.WorldToScreen(Player.Position)[0] - 30, Drawing.WorldToScreen(Player.Position)[1] + 20, System.Drawing.Color.Gold, "Ult can kill: ");
+
+            //Drawing.DrawText(Drawing.WorldToScreen(Player.Position)[0] - 30, Drawing.WorldToScreen(Player.Position)[1] + 20, System.Drawing.Color.Gold, "Ult can kill: ");
             foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.R) >= x.Health && x.IsValidTarget()))
             {
 				Drawing.DrawText(Drawing.WorldToScreen(Player.Position)[0] - 30 , Drawing.WorldToScreen(Player.Position)[1]+ 20, System.Drawing.Color.Gold, "Ult can kill: "+ hero.ChampionName);
@@ -275,7 +270,7 @@ namespace Kimbaeng_KarThus
         }
 
         //Trus Logic
-        private static void LaneClear()
+       private static void LaneClear()
         {
             var rangedMinions = MinionManager.GetMinions(
                 ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.Ranged);
@@ -297,6 +292,7 @@ namespace Kimbaeng_KarThus
 //Trus Logic
         public static Vector3 FindHitPosition(PredictionOutput minion)
         {
+            Console.WriteLine("Searching hit position");
             int multihit = 0;
             for (int i = -100; i < 100; i = i + 10)
             {
@@ -310,7 +306,7 @@ namespace Kimbaeng_KarThus
                     }
                 }
             }
-            return new Vector3(0, 0, 0);
+                return new Vector3(0,0,0);
         }
 //Trus Logic
         static int CheckMultiHit(Vector3 minion)
@@ -319,16 +315,18 @@ namespace Kimbaeng_KarThus
             var allMinions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
             foreach (Obj_AI_Base minionvar in allMinions.Where(x => Vector3.Distance(minion, Prediction.GetPrediction(x, 250f).UnitPosition) < 200))
             {
-                count++;
+                    count++;               
             }
             return count;
         }
 //Trus Logic
         private static void FarmCast(Obj_AI_Base minion)
         {
+            Console.WriteLine("Starting farm check");
             var position = FindHitPosition(Prediction.GetPrediction(minion, 250f));
             if (!(position.X == 0 && position.Y == 0 && position.Z == 0))
             {
+                Console.WriteLine("Cast Q: " + position.X + " : " + position.Y + " : " + position.Z);
                 Q.Cast(position);
             }
         }
