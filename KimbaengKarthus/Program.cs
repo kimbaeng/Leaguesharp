@@ -19,6 +19,7 @@ namespace Kimbaeng_KarThus
         public static Spell W;
         public static Spell E;
         public static Spell R;
+        private static bool _comboE;
         private static Vector2 PingLocation;
         private static int LastPingT = 0;
         private const float SpellQWidth = 160f;
@@ -77,20 +78,20 @@ namespace Kimbaeng_KarThus
 
             var LastHitMenu = _menu.AddSubMenu(new Menu("LastHit", "LastHit"));
             //FreezeMenu.AddItem(new MenuItem("LastHit", "").SetValue(new KeyBind('Z', KeyBindType.Press)));
-            //LastHitMenu.AddItem(new MenuItem("string", "Only Attack One Minion key"));
-            L
+            LastHitMenu.AddItem(new MenuItem("useQLastHit", "LastHit With Q").SetValue(true));
+            LastHitMenu.AddItem(new MenuItem("UseAALastHit", "LastHit With AA").SetValue(true));
 
             var MiscMenu = _menu.AddSubMenu(new Menu("Misc", "Misc"));
             MiscMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
             MiscMenu.AddItem(new MenuItem("NotifyPing", "Notify Ult Ping").SetValue(true));
             MiscMenu.AddItem(new MenuItem("AutoQ", "AutoQ Immobile Enemmy").SetValue(true));
 
-            var drawMenu = _menu.AddSubMenu(new Menu("Draw", "drawing"));
-            drawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(false));
-            drawMenu.AddItem(new MenuItem("drawDmg", "DrawR Damage").SetValue(true));
-            drawMenu.AddItem(new MenuItem("drawQ", "DrawQ").SetValue(new Circle(true, System.Drawing.Color.Goldenrod)));
-            drawMenu.AddItem(new MenuItem("drawW", "DrawW").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
-            drawMenu.AddItem(new MenuItem("drawE", "DrawE").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
+            var DrawMenu = _menu.AddSubMenu(new Menu("Draw", "drawing"));
+            DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(false));
+            DrawMenu.AddItem(new MenuItem("drawDmg", "DrawR Damage").SetValue(true));
+            DrawMenu.AddItem(new MenuItem("drawQ", "DrawQ").SetValue(new Circle(true, System.Drawing.Color.Goldenrod)));
+            DrawMenu.AddItem(new MenuItem("drawW", "DrawW").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
+            DrawMenu.AddItem(new MenuItem("drawE", "DrawE").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
 
             Drawing.OnDraw += Drawing_Ondraw;
             Game.OnUpdate += Game_OnUpdate;
@@ -118,30 +119,30 @@ namespace Kimbaeng_KarThus
                 AutoQ();
             }
 
-            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+            switch (_orbwalker.ActiveMode)
             {
-                _orbwalker.SetAttack(_menu.Item("comboAA").GetValue<bool>() || ObjectManager.Player.Mana < 100); //if no mana, allow auto attacks!
-                Combo();
+                case Orbwalking.OrbwalkingMode.Combo:
+                    _orbwalker.SetAttack(_menu.Item("comboAA").GetValue<bool>() || ObjectManager.Player.Mana < 100); //if no mana, allow auto attacks!
+                    Combo();
+                    break;
+                case Orbwalking.OrbwalkingMode.Mixed:
+                    _orbwalker.SetAttack(true);
+                    Harass();
+                    break;
+                case Orbwalking.OrbwalkingMode.LaneClear:
+                    _orbwalker.SetAttack(true);
+                    LaneClear();
+                    break;
+                case Orbwalking.OrbwalkingMode.LastHit:
+                    _orbwalker.SetAttack(_menu.Item("UseAALastHit").GetValue<bool>());
+                    LastHit();
+                    break;
+                default:
+                    _orbwalker.SetAttack(false);
+                    _orbwalker.SetMovement(true);
+                    RegulateEState();
+                    break;
             }
-
-            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
-            {
-                Harass();
-            }
-
-            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
-            {
-                LaneClear();
-            }
-            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
-            {
-                LastHit();
-            }
-            if (_menu.Item("Freeze").GetValue<KeyBind>().Active)
-            {
-                Farm();
-            }
-
         }
 
         private static void Drawing_Ondraw(EventArgs args)
@@ -248,23 +249,33 @@ namespace Kimbaeng_KarThus
 
         private static void LastHit()
         {
-            if (!Q.IsReady())
-                return;
-            var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,
-                MinionTeam.NotAlly);
-            minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
 
-            foreach (
-                var minion in
-                    minions.Where(
-                        x =>
-                            ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
-                            //FirstDamage = multitarget hit, differentiate! (check radius around mob predicted pos)
-                            HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
+            if (Q.IsReady())
             {
-                Q.Cast(minion);
+                var minioncout = Q.GetLineFarmLocation(MinionManager.GetMinions(Q.Range));
+                if (minioncout.MinionsHit >= 4)
+                {
+                    var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,MinionTeam.NotAlly);
+                    minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
 
+                    foreach (
+                        var minion in
+                            minions.Where(
+                                x =>
+                                    ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
+                                    //FirstDamage = multitarget hit, differentiate! (check radius around mob predicted pos)
+                                    HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
+                    {
+                        Q.Cast(minion);
+
+                    }
+                }
+                else
+                {
+                    Farm();
+                }
             }
+
         }
 
         //Trus Logic
@@ -329,7 +340,7 @@ namespace Kimbaeng_KarThus
             }
         }
 
-		    private void RegulateEState(bool ignoreTargetChecks = false)
+        private static void RegulateEState(bool ignoreTargetChecks = false)
         {
             if (!E.IsReady() || IsInPassiveForm() ||
                 ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 2)
@@ -338,13 +349,13 @@ namespace Kimbaeng_KarThus
             var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All,
                 MinionTeam.NotAlly);
 
-            if (!ignoreTargetChecks && (target != null || (minions.Count != 0)))
+            if (!ignoreTargetChecks && (target != null || (!_comboE && minions.Count != 0)))
                 return;
             E.CastOnUnit(ObjectManager.Player);
-            
+            _comboE = false;
         }
 
-	    private static bool IsInPassiveForm()
+        private static bool IsInPassiveForm()
         {
             return ObjectManager.Player.IsZombie; //!ObjectManager.Player.IsHPBarRendered;
         }
@@ -409,7 +420,15 @@ namespace Kimbaeng_KarThus
             }
             if (eTarget != null && UseE && E.IsReady() && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
             {
-                E.Cast();
+                if (ObjectManager.Player.Distance(eTarget.ServerPosition) <= E.Range)
+                {
+                    _comboE = true;
+                    E.Cast();
+                }
+                else
+                {
+                    RegulateEState();
+                }
             }
             else if (eTarget == null && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 1)
             {
