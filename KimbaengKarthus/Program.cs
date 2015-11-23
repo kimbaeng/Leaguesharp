@@ -8,10 +8,7 @@ using SharpDX;
 
 namespace Kimbaeng_KarThus
 {
-    using LadyGragas;
-
-    using Circle = LeagueSharp.Common.Circle;
-
+    
     class Program
     {
         public static Menu _menu;
@@ -78,9 +75,10 @@ namespace Kimbaeng_KarThus
             harassMenu.AddItem(new MenuItem("useQHarass", "UseQ").SetValue(true));
             harassMenu.AddItem(new MenuItem("useEHarass", "UseE").SetValue(true));
 
-            var FreezeMenu = _menu.AddSubMenu(new Menu("Freeze", "Freeze"));
-            FreezeMenu.AddItem(new MenuItem("Freeze", "Freeze").SetValue(new KeyBind('Z', KeyBindType.Press)));
-            FreezeMenu.AddItem(new MenuItem("string", "Only Attack One Minion key"));
+            var LastHitMenu = _menu.AddSubMenu(new Menu("LastHit", "LastHit"));
+            //FreezeMenu.AddItem(new MenuItem("LastHit", "").SetValue(new KeyBind('Z', KeyBindType.Press)));
+            //LastHitMenu.AddItem(new MenuItem("string", "Only Attack One Minion key"));
+            L
 
             var MiscMenu = _menu.AddSubMenu(new Menu("Misc", "Misc"));
             MiscMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
