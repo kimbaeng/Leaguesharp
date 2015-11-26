@@ -8,7 +8,8 @@ using SharpDX;
 
 namespace Kimbaeng_KarThus
 {
-    
+    using System.Configuration;
+
     class Program
     {
         public static Menu _menu;
@@ -26,7 +27,6 @@ namespace Kimbaeng_KarThus
         private const float SpellWWidth = 160f;
 
         public static SpellSlot IgniteSlot;
-
 
         static void Main(string[] args)
         {
@@ -51,7 +51,7 @@ namespace Kimbaeng_KarThus
             W.SetSkillshot(0.65f, 100f, 1600f, false, SkillshotType.SkillshotLine);
             E.SetSkillshot(1f, 505, float.MaxValue, false, SkillshotType.SkillshotCircle);
             R.SetSkillshot(3f, float.MaxValue, float.MaxValue, false, SkillshotType.SkillshotCircle);
-
+            
             (_menu = new Menu("Kimbaeng Karthus", "kimbaengkarthus", true)).AddToMainMenu();
 
             var targetSelectorMenu = new Menu("Target Selector", "TargetSelector");
@@ -62,8 +62,8 @@ namespace Kimbaeng_KarThus
             _orbwalker.SetAttack(true);
 
             var HitchanceMenu = _menu.AddSubMenu(new Menu("Hitchance", "Hitchance"));
-            HitchanceMenu.AddItem(new MenuItem("Hitchance", "Hitchance").SetValue(new StringList(new[] { "Low", "Medium", "High", "VeryHigh" })));
-
+            HitchanceMenu.AddItem(new MenuItem("Hitchance", "Hitchance").SetValue(new StringList(new[] { "Low", "Medium", "High", "VeryHigh", "Impossible"},3)));
+            
             var comboMenu = _menu.AddSubMenu(new Menu("combo", "Combo"));
             comboMenu.AddItem(new MenuItem("useQ", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem("useW", "Use W").SetValue(true));
@@ -77,9 +77,7 @@ namespace Kimbaeng_KarThus
             harassMenu.AddItem(new MenuItem("useEHarass", "UseE").SetValue(true));
 
             var LastHitMenu = _menu.AddSubMenu(new Menu("LastHit", "LastHit"));
-            //FreezeMenu.AddItem(new MenuItem("LastHit", "").SetValue(new KeyBind('Z', KeyBindType.Press)));
             LastHitMenu.AddItem(new MenuItem("useQLastHit", "LastHit With Q").SetValue(true));
-            LastHitMenu.AddItem(new MenuItem("UseAALastHit", "LastHit With AA").SetValue(true));
 
             var MiscMenu = _menu.AddSubMenu(new Menu("Misc", "Misc"));
             MiscMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
@@ -88,7 +86,7 @@ namespace Kimbaeng_KarThus
 
             var DrawMenu = _menu.AddSubMenu(new Menu("Draw", "drawing"));
             DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(false));
-            DrawMenu.AddItem(new MenuItem("drawDmg", "DrawR Damage").SetValue(true));
+            //DrawMenu.AddItem(new MenuItem("drawDmg", "DrawR Damage").SetValue(true));
             DrawMenu.AddItem(new MenuItem("drawQ", "DrawQ").SetValue(new Circle(true, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawW", "DrawW").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawE", "DrawE").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
@@ -174,26 +172,14 @@ namespace Kimbaeng_KarThus
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, E.Range, eValue.Color);
             }
 
-			if (_menu.Item("DrawDmg").GetValue<bool>())
-                {
-                    foreach (var enemy in
-                        ObjectManager.Get<Obj_AI_Hero>().Where(ene => !ene.IsDead && ene.IsEnemy && ene.IsVisible))
-                    {
-                        Hpi.unit = enemy;
-                        var damage = R.GetDamage(enemy);
-                        Hpi.drawDmg(damage , System.Drawing.Color.Goldenrod);
-                    }
-                }
-
         }
 
-        //Trus Logic
         private static void AutoUlt()
         {
-            if (R.Instance.Level == 0)
+            if (R.Instance.Level == 0 && !R.IsReady())
                 return;
 
-            //Drawing.DrawText(Drawing.WorldToScreen(Player.Position)[0] - 30, Drawing.WorldToScreen(Player.Position)[1] + 20, System.Drawing.Color.Gold, "Ult can kill: ");
+
             foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.R) >= x.Health && x.IsValidTarget()))
             {
 				Drawing.DrawText(Drawing.WorldToScreen(Player.Position)[0] - 30 , Drawing.WorldToScreen(Player.Position)[1]+ 20, System.Drawing.Color.Gold, "Ult can kill: "+ hero.ChampionName);
@@ -232,8 +218,8 @@ namespace Kimbaeng_KarThus
 
         }
 
-        //Trus Logic
-        private static void Farm()
+        
+        private static void Farm() //Trus Logic
         {
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
 
@@ -249,14 +235,14 @@ namespace Kimbaeng_KarThus
 
         private static void LastHit()
         {
-
-            if (Q.IsReady())
+            
+            if (Q.IsReady() && _menu.Item("useQLastHit").GetValue<bool>())
             {
                 var minioncout = Q.GetLineFarmLocation(MinionManager.GetMinions(Q.Range));
                 if (minioncout.MinionsHit >= 4)
                 {
                     var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,MinionTeam.NotAlly);
-                    minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
+                    minions.RemoveAll(x => x.MaxHealth <= 3 ); //filter wards the ghetto method lel
 
                     foreach (
                         var minion in
@@ -278,8 +264,8 @@ namespace Kimbaeng_KarThus
 
         }
 
-        //Trus Logic
-       private static void LaneClear()
+        
+       private static void LaneClear() 
         {
             var rangedMinions = MinionManager.GetMinions(
                 ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.Ranged);
@@ -298,10 +284,9 @@ namespace Kimbaeng_KarThus
             }
         }
 
-//Trus Logic
-        public static Vector3 FindHitPosition(PredictionOutput minion)
+
+        public static Vector3 FindHitPosition(PredictionOutput minion) //Trus Logic
         {
-            Console.WriteLine("Searching hit position");
             int multihit = 0;
             for (int i = -100; i < 100; i = i + 10)
             {
@@ -317,8 +302,8 @@ namespace Kimbaeng_KarThus
             }
                 return new Vector3(0,0,0);
         }
-//Trus Logic
-        static int CheckMultiHit(Vector3 minion)
+    
+        static int CheckMultiHit(Vector3 minion) //Trus Logic
         {
             var count = 0;
             var allMinions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
@@ -328,14 +313,14 @@ namespace Kimbaeng_KarThus
             }
             return count;
         }
-//Trus Logic
-        private static void FarmCast(Obj_AI_Base minion)
+
+        private static void FarmCast(Obj_AI_Base minion) //Trus Logic
         {
-            Console.WriteLine("Starting farm check");
+            //Console.WriteLine("Starting farm check");
             var position = FindHitPosition(Prediction.GetPrediction(minion, 250f));
             if (!(position.X == 0 && position.Y == 0 && position.Z == 0))
             {
-                Console.WriteLine("Cast Q: " + position.X + " : " + position.Y + " : " + position.Z);
+               // Console.WriteLine("Cast Q: " + position.X + " : " + position.Y + " : " + position.Z);
                 Q.Cast(position);
             }
         }
@@ -357,9 +342,8 @@ namespace Kimbaeng_KarThus
 
         private static bool IsInPassiveForm()
         {
-            return ObjectManager.Player.IsZombie; //!ObjectManager.Player.IsHPBarRendered;
+            return ObjectManager.Player.IsZombie;
         }
-        //Beaving Logic
 
         private static void Ping(Vector2 position)
         {
@@ -377,15 +361,9 @@ namespace Kimbaeng_KarThus
             Utility.DelayAction.Add(400, SimplePing);
             Utility.DelayAction.Add(800, SimplePing);
         }
-        //Beaving Logic
         private static void SimplePing()
         {
             Game.ShowPing(PingCategory.Fallback, PingLocation, true);
-        }
-        //Beaving Logic
-        private float ComboDamage(Obj_AI_Hero t)
-        {
-            return R.GetDamage(t);
         }
 
         private static void Combo()
@@ -399,8 +377,7 @@ namespace Kimbaeng_KarThus
             var UseE = _menu.Item("useE").GetValue<bool>();
             if (qTarget != null &&  UseQ && Q.IsReady())
             {
-				var HC = HitChance.Medium;
-
+				var HC = HitChance.VeryHigh;
                 switch (_menu.Item("Hitchance").GetValue<StringList>().SelectedIndex)
                 {
                     case 0: //Low
@@ -414,6 +391,9 @@ namespace Kimbaeng_KarThus
                         break;
                     case 3: //Very High
                         HC = HitChance.VeryHigh;
+                        break;
+                    case 4: //impossable
+                        HC = HitChance.Impossible;
                         break;
                 }
                  Q.CastIfHitchanceEquals(qTarget, HC, true);
