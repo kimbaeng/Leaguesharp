@@ -136,7 +136,7 @@ namespace Kimbaeng_KarThus
                     LastHit();
                     break;
                 default:
-                    _orbwalker.SetAttack(false);
+                    _orbwalker.SetAttack(true);
                     _orbwalker.SetMovement(true);
                     RegulateEState();
                     break;
@@ -177,12 +177,15 @@ namespace Kimbaeng_KarThus
         private static void AutoUlt()
         {
             if (R.Instance.Level == 0 && !R.IsReady())
-                return;
-
-
-            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.R) >= x.Health && x.IsValidTarget()))
             {
-				Drawing.DrawText(Drawing.WorldToScreen(Player.Position)[0] - 30 , Drawing.WorldToScreen(Player.Position)[1]+ 20, System.Drawing.Color.Gold, "Ult can kill: "+ hero.ChampionName);
+                return;     
+            }
+            else
+            {
+                foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.R) >= x.Health && x.IsValidTarget()))
+                {
+                    Drawing.DrawText(Drawing.WorldToScreen(Player.Position)[0] - 30, Drawing.WorldToScreen(Player.Position)[1] + 20, System.Drawing.Color.Gold, "Ult can kill: " + hero.ChampionName);
+                }
             }
         }
 
@@ -239,7 +242,7 @@ namespace Kimbaeng_KarThus
             if (Q.IsReady() && _menu.Item("useQLastHit").GetValue<bool>())
             {
                 var minioncout = Q.GetLineFarmLocation(MinionManager.GetMinions(Q.Range));
-                if (minioncout.MinionsHit >= 4)
+                if (minioncout.MinionsHit >= 5)
                 {
                     var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,MinionTeam.NotAlly);
                     minions.RemoveAll(x => x.MaxHealth <= 3 ); //filter wards the ghetto method lel
@@ -250,7 +253,7 @@ namespace Kimbaeng_KarThus
                                 x =>
                                     ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
                                     //FirstDamage = multitarget hit, differentiate! (check radius around mob predicted pos)
-                                    HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
+                                    HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 800))))
                     {
                         Q.Cast(minion);
 
