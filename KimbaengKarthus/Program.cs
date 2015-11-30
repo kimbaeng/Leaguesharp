@@ -8,6 +8,8 @@ using SharpDX;
 
 namespace Kimbaeng_KarThus
 {
+    using System.Drawing.Imaging;
+
     class Program
     {
         public static Menu _menu;
@@ -71,17 +73,21 @@ namespace Kimbaeng_KarThus
             var harassMenu = _menu.AddSubMenu(new Menu("Harass", "Harass"));
             harassMenu.AddItem(new MenuItem("useQHarass", "UseQ").SetValue(true));
             harassMenu.AddItem(new MenuItem("useEHarass", "UseE").SetValue(true));
+            harassMenu.AddItem(new MenuItem("autoqh", "Auto Q Harass").SetValue(false));
+            harassMenu.AddItem(new MenuItem("harassmana", "Mana %").SetValue(new Slider(50)));
 
             var LastHitMenu = _menu.AddSubMenu(new Menu("LastHit", "LastHit"));
-            LastHitMenu.AddItem(new MenuItem("useqlasthit", "LastHit With Q").SetValue(true));
+            LastHitMenu.AddItem(new MenuItem("useqlasthit", "Use Q").SetValue(true));
 
             //var FreezeMenu = _menu.AddSubMenu(new Menu("Freeze", "Freeze"));
             //FreezeMenu.AddItem(new MenuItem("Freeze", "Freeze").SetValue(new KeyBind('Z', KeyBindType.Press)));
             //FreezeMenu.AddItem(new MenuItem("string", "Only Attack One Minion key"));
 
             var MiscMenu = _menu.AddSubMenu(new Menu("Misc", "Misc"));
-            MiscMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
-            MiscMenu.AddItem(new MenuItem("NotifyPing", "Notify Ult Ping").SetValue(true));
+            var ultMenu = MiscMenu.AddSubMenu(new Menu("Ult", "Ult"));
+                ultMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
+                ultMenu.AddItem(new MenuItem("NotifyPing", "Notify Ult Ping").SetValue(true));
+
             MiscMenu.AddItem(new MenuItem("AutoQ", "AutoQ Immobile Enemmy").SetValue(true));
 
             var DrawMenu = _menu.AddSubMenu(new Menu("Draw", "drawing"));
@@ -122,7 +128,8 @@ namespace Kimbaeng_KarThus
             }
                 
 
-            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed || 
+                _menu.Item("autoqh").GetValue<bool>() && _menu.Item("harassmana").GetValue<Slider>().Value < ObjectManager.Player.ManaPercent)
                 {
                     Harass();
                 }
@@ -132,9 +139,9 @@ namespace Kimbaeng_KarThus
                     LaneClear();
                 }
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
-                {
-                    LastHit();
-                }
+            {
+                LastHit();
+            }
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.None)
             {
                 RegulateEState();
@@ -210,8 +217,7 @@ namespace Kimbaeng_KarThus
                     Ping(enemy.Position.To2D());
                 }
         }
-        private static
-            void AutoQ()
+        private static void AutoQ()
         {
             if (Q.IsReady())
                 foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
@@ -261,7 +267,11 @@ namespace Kimbaeng_KarThus
                     MinionTypes.All,
                     MinionTeam.NotAlly);
                 minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
-                if (minions.Count >= 3)
+                if (minions.Count == 0)
+                {
+                    RegulateEState();
+                }
+                else if (minions.Count >= 4)
                 {
 
                     foreach (var minion in
@@ -280,29 +290,55 @@ namespace Kimbaeng_KarThus
             }
         }
 
-        private static void LaneClear() 
+        private static void LaneClear()
         {
-            var rangedMinions = MinionManager.GetMinions(
-                ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.Ranged);
-            var allMinions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
+
+            List<Obj_AI_Base> minions;
+
+            bool jungleMobs;
             if (Q.IsReady())
             {
-                var rangedLocation = Q.GetCircularFarmLocation(rangedMinions);
-                var location = Q.GetCircularFarmLocation(allMinions);
+                minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition,Q.Range,MinionTypes.All,MinionTeam.NotAlly);
+                minions.RemoveAll(x => x.MaxHealth <= 5);
 
-                var bLocation = (location.MinionsHit > rangedLocation.MinionsHit + 1) ? location : rangedLocation;
+                jungleMobs = minions.Any(x => x.Team == GameObjectTeam.Neutral);
 
-                if (bLocation.MinionsHit > 0)
+                Q.Width = SpellQWidth;
+                var farmInfo = Q.GetCircularFarmLocation(minions, Q.Width);
+
+                if (farmInfo.MinionsHit >= 1)
                 {
-                    Q.Cast(bLocation.Position.To3D());
+                    Q.Cast(farmInfo.Position,jungleMobs);
+                }
+                else
+                {
+                    RegulateEState();
                 }
             }
         }
 
+        //{
+        //    var rangedMinions = MinionManager.GetMinions(
+        //        ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.Ranged,);
+        //    var allMinions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
+        //    if (Q.IsReady())
+        //    {
+        //        var rangedLocation = Q.GetCircularFarmLocation(rangedMinions);
+        //        var location = Q.GetCircularFarmLocation(allMinions);
+
+            //        var bLocation = (location.MinionsHit > rangedLocation.MinionsHit + 1) ? location : rangedLocation;
+            //
+            //       if (bLocation.MinionsHit > 0)
+            //        {
+            //            Q.Cast(bLocation.Position.To3D());
+            //        }
+            //    }
+            //}
+
 
         public static Vector3 FindHitPosition(PredictionOutput minion) //Trus Logic
         {
-            int multihit = 0;
+            int multihit = 1;
             for (int i = -100; i < 100; i = i + 10)
             {
                 for (int a = -100; a < 100; a = a + 10)
@@ -322,10 +358,15 @@ namespace Kimbaeng_KarThus
         {
             var count = 0;
             var allMinions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
-            foreach (Obj_AI_Base minionvar in allMinions.Where(x => Vector3.Distance(minion, Prediction.GetPrediction(x, 250f).UnitPosition) < 200))
+            foreach (
+                Obj_AI_Base minionvar in
+                    allMinions.Where(
+                        x => Vector3.Distance(minion, Prediction.GetPrediction(x, 250f).UnitPosition) < 200))
             {
-                    count++;               
+                count++;
             }
+           
+            
             return count;
         }
 
@@ -474,14 +515,18 @@ namespace Kimbaeng_KarThus
                 }
                 Q.CastIfHitchanceEquals(qTarget, HC, true);
             }
-            if (eTarget != null && UseE && E.IsReady() && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
+            else
             {
-                E.Cast();
+                RegulateEState();
             }
-            else if (eTarget == null && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 1)
-            {
-                E.Cast();
-            }
+            //if (eTarget != null && UseE && E.IsReady() && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
+            //{
+            //    E.Cast();
+            //}
+            //else if (eTarget == null && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 1)
+            //{
+            //    E.Cast();
+            //}
         }
 
     }
