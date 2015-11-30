@@ -140,6 +140,7 @@ namespace Kimbaeng_KarThus
                 }
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
             {
+                _orbwalker.SetAttack(false);
                 LastHit();
             }
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.None)
@@ -271,14 +272,14 @@ namespace Kimbaeng_KarThus
                 {
                     RegulateEState();
                 }
-                else if (minions.Count >= 4)
+                if (minions.Count >= 3)
                 {
 
                     foreach (var minion in
                         minions.Where(
                             x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
                                  //FirstDamage = multitarget hit, differentiate! (check radius around mob predicted pos)
-                                 HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
+                                 HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 800))))
                     {
                         Q.Cast(minion);
                     }
