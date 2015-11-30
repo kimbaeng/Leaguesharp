@@ -88,7 +88,7 @@ namespace Kimbaeng_KarThus
                 ultMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
                 ultMenu.AddItem(new MenuItem("NotifyPing", "Notify Ult Ping").SetValue(true));
 
-            MiscMenu.AddItem(new MenuItem("AutoQ", "AutoQ Immobile Enemmy").SetValue(true));
+            MiscMenu.AddItem(new MenuItem("AutoQ", "AutoQ Immobile Enemy").SetValue(true));
 
             var DrawMenu = _menu.AddSubMenu(new Menu("Draw", "drawing"));
             DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(false));
@@ -219,23 +219,26 @@ namespace Kimbaeng_KarThus
         }
         private static void AutoQ()
         {
-            if (Q.IsReady())
-                foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
+            if (!Q.IsReady())
+            {
+                return;
+            }
+            foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
+            {
+                if (enemy.IsValidTarget(Q.Range))
                 {
-                    if (enemy.IsValidTarget(Q.Range))
-                    {
 
-                        var pred = Q.GetPrediction(enemy);
-                        if (pred.Hitchance == HitChance.Immobile)
-                        {
-                            Q.Cast(enemy);
-                        }
+                    var pred = Q.GetPrediction(enemy);
+                    if (pred.Hitchance == HitChance.Immobile)
+                    {
+                        Q.Cast(enemy);
                     }
                 }
+            }
 
         }
 
-        
+
         private static void Farm() //Trus Logic
         {
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
@@ -268,7 +271,6 @@ namespace Kimbaeng_KarThus
                 {
                     RegulateEState();
                 }
-
                 else if (minions.Count >= 4)
                 {
 
@@ -423,7 +425,6 @@ namespace Kimbaeng_KarThus
 
         private static void Combo()
         {
-			
             var qTarget = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
             var wTarget = TargetSelector.GetTarget(W.Range, TargetSelector.DamageType.Magical);
             var eTarget = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
@@ -460,15 +461,11 @@ namespace Kimbaeng_KarThus
                     _comboE = true;
                     E.Cast();
                 }
-                else
-                {
-                    RegulateEState();
                 }
-            }
-            else if (eTarget == null && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 1)
-            {
+                else if (eTarget == null && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 1)
+                {
                 E.Cast();
-            }
+                }
 
             if (wTarget != null && UseW  && W.IsReady())
             {
