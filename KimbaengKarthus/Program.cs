@@ -8,8 +8,6 @@ using SharpDX;
 
 namespace Kimbaeng_KarThus
 {
-    using System.Drawing.Imaging;
-
     class Program
     {
         public static Menu _menu;
@@ -79,10 +77,6 @@ namespace Kimbaeng_KarThus
             var LastHitMenu = _menu.AddSubMenu(new Menu("LastHit", "LastHit"));
             LastHitMenu.AddItem(new MenuItem("useqlasthit", "Use Q").SetValue(true));
 
-            //var FreezeMenu = _menu.AddSubMenu(new Menu("Freeze", "Freeze"));
-            //FreezeMenu.AddItem(new MenuItem("Freeze", "Freeze").SetValue(new KeyBind('Z', KeyBindType.Press)));
-            //FreezeMenu.AddItem(new MenuItem("string", "Only Attack One Minion key"));
-
             var MiscMenu = _menu.AddSubMenu(new Menu("Misc", "Misc"));
             var ultMenu = MiscMenu.AddSubMenu(new Menu("Ult", "Ult"));
                 ultMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
@@ -92,7 +86,6 @@ namespace Kimbaeng_KarThus
 
             var DrawMenu = _menu.AddSubMenu(new Menu("Draw", "drawing"));
             DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(false));
-            //DrawMenu.AddItem(new MenuItem("drawDmg", "DrawR Damage").SetValue(true));
             DrawMenu.AddItem(new MenuItem("drawQ", "DrawQ").SetValue(new Circle(true, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawW", "DrawW").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawE", "DrawE").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
