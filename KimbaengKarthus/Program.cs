@@ -9,6 +9,7 @@ using SharpDX;
 namespace Kimbaeng_KarThus
 {
     using System.Configuration;
+    using System.Diagnostics.Eventing.Reader;
 
     class Program
     {
@@ -25,7 +26,6 @@ namespace Kimbaeng_KarThus
         private static int LastPingT = 0;
         private const float SpellQWidth = 160f;
         private const float SpellWWidth = 160f;
-
         public static SpellSlot IgniteSlot;
 
         static void Main(string[] args)
@@ -51,7 +51,6 @@ namespace Kimbaeng_KarThus
             W.SetSkillshot(0.65f, 100f, 1600f, false, SkillshotType.SkillshotLine);
             E.SetSkillshot(1f, 505, float.MaxValue, false, SkillshotType.SkillshotCircle);
             R.SetSkillshot(3f, float.MaxValue, float.MaxValue, false, SkillshotType.SkillshotCircle);
-            
             (_menu = new Menu("Kimbaeng Karthus", "kimbaengkarthus", true)).AddToMainMenu();
 
             var targetSelectorMenu = new Menu("Target Selector", "TargetSelector");
@@ -98,48 +97,40 @@ namespace Kimbaeng_KarThus
 
         }
 
-        private static void Game_OnUpdate(EventArgs args)
-
-		
+        private static void Game_OnUpdate(EventArgs args)	
         {
             if (_menu.Item("NotifyUlt").GetValue<bool>())
-            {
                 AutoUlt();
-            }
 
             if (_menu.Item("NotifyPing").GetValue<bool>())
-            {
                 NotifyPing();
-            }
 
             if (_menu.Item("AutoQ").GetValue<bool>())
-            {
                 AutoQ();
-            }
 
-            switch (_orbwalker.ActiveMode)
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
             {
-                case Orbwalking.OrbwalkingMode.Combo:
-                    _orbwalker.SetAttack(_menu.Item("comboAA").GetValue<bool>() || ObjectManager.Player.Mana < 100); //if no mana, allow auto attacks!
-                    Combo();
-                    break;
-                case Orbwalking.OrbwalkingMode.Mixed:
-                    _orbwalker.SetAttack(true);
+                _orbwalker.SetAttack(_menu.Item("comboAA").GetValue<bool>() || ObjectManager.Player.Mana < 100); //if no mana, allow auto attacks!
+                Combo();
+            }
+                
+
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
+                {
                     Harass();
-                    break;
-                case Orbwalking.OrbwalkingMode.LaneClear:
-                    _orbwalker.SetAttack(true);
+                }
+            
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+                {
                     LaneClear();
-                    break;
-                case Orbwalking.OrbwalkingMode.LastHit:
-                    _orbwalker.SetAttack(_menu.Item("UseAALastHit").GetValue<bool>());
+                }
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+                {
                     LastHit();
-                    break;
-                default:
-                    _orbwalker.SetAttack(true);
-                    _orbwalker.SetMovement(true);
-                    RegulateEState();
-                    break;
+                }
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.None)
+            {
+                RegulateEState();
             }
         }
 
@@ -178,32 +169,42 @@ namespace Kimbaeng_KarThus
         {
             if (R.Instance.Level == 0 && !R.IsReady())
             {
-                return;     
+                return;
             }
             else
             {
-                foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.R) >= x.Health && x.IsValidTarget()))
+                foreach (var hero in
+                    ObjectManager.Get<Obj_AI_Hero>()
+                        .Where(
+                            x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.R) >= x.Health && x.IsValidTarget()))
                 {
-                    Drawing.DrawText(Drawing.WorldToScreen(Player.Position)[0] - 30, Drawing.WorldToScreen(Player.Position)[1] + 20, System.Drawing.Color.Gold, "Ult can kill: " + hero.ChampionName);
+                    Drawing.DrawText(
+                        Drawing.WorldToScreen(Player.Position)[0] - 30,
+                        Drawing.WorldToScreen(Player.Position)[1] + 20,
+                        System.Drawing.Color.Gold,
+                        "Ult can kill: " + hero.ChampionName);
                 }
             }
         }
 
         private static void NotifyPing()
         {
-            foreach (
-                    var enemy in
-                        HeroManager.Enemies.Where(
-                            t =>
-                                ObjectManager.Player.Spellbook.CanUseSpell(SpellSlot.R) == SpellState.Ready &&
-                                t.IsValidTarget() && R.GetDamage(t) > t.Health &&
-                                t.Distance(ObjectManager.Player.Position) > Q.Range))
+            if (R.Instance.Level == 0 && !R.IsReady())
             {
-                Ping(enemy.Position.To2D());
+                return;
             }
+            else
+                foreach (var enemy in
+                    HeroManager.Enemies.Where(
+                        t =>
+                        ObjectManager.Player.Spellbook.CanUseSpell(SpellSlot.R) == SpellState.Ready && t.IsValidTarget()
+                        && R.GetDamage(t) > t.Health && t.Distance(ObjectManager.Player.Position) > Q.Range))
+                {
+                    Ping(enemy.Position.To2D());
+                }
         }
-
-        private static void AutoQ()
+        private static
+            void AutoQ()
         {
             if (Q.IsReady())
                 foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
@@ -238,37 +239,33 @@ namespace Kimbaeng_KarThus
 
         private static void LastHit()
         {
-            
-            if (Q.IsReady() && _menu.Item("useQLastHit").GetValue<bool>())
+            var useQ = _menu.Item("useQLastHit").GetValue<bool>();
+
+            if (!useQ || !Q.IsReady())
+                return;
+
+            var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,
+                MinionTeam.NotAlly);
+            minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
+            if (minions.Count >= 4)
             {
-                var minioncout = Q.GetLineFarmLocation(MinionManager.GetMinions(Q.Range));
-                if (minioncout.MinionsHit >= 5)
-                {
-                    var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,MinionTeam.NotAlly);
-                    minions.RemoveAll(x => x.MaxHealth <= 3 ); //filter wards the ghetto method lel
 
-                    foreach (
-                        var minion in
-                            minions.Where(
-                                x =>
-                                    ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
-                                    //FirstDamage = multitarget hit, differentiate! (check radius around mob predicted pos)
-                                    HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 800))))
-                    {
-                        Q.Cast(minion);
-
-                    }
-                }
-                else
+                foreach (var minion in
+                    minions.Where(
+                        x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
+                             //FirstDamage = multitarget hit, differentiate! (check radius around mob predicted pos)
+                             HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
                 {
-                    Farm();
+                    Q.Cast(minion);
                 }
             }
-
+            else
+            {
+                Farm();
+            }
         }
 
-        
-       private static void LaneClear() 
+        private static void LaneClear() 
         {
             var rangedMinions = MinionManager.GetMinions(
                 ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.Ranged);
@@ -380,7 +377,7 @@ namespace Kimbaeng_KarThus
             var UseE = _menu.Item("useE").GetValue<bool>();
             if (qTarget != null &&  UseQ && Q.IsReady())
             {
-				var HC = HitChance.VeryHigh;
+               var HC = HitChance.VeryHigh;
                 switch (_menu.Item("Hitchance").GetValue<StringList>().SelectedIndex)
                 {
                     case 0: //Low
@@ -399,7 +396,7 @@ namespace Kimbaeng_KarThus
                         HC = HitChance.Impossible;
                         break;
                 }
-                 Q.CastIfHitchanceEquals(qTarget, HC, true);
+                Q.CastIfHitchanceEquals(qTarget, HC, true);
             }
             if (eTarget != null && UseE && E.IsReady() && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
             {
@@ -444,17 +441,20 @@ namespace Kimbaeng_KarThus
             {
                 switch (_menu.Item("Hitchance").GetValue<StringList>().SelectedIndex)
                 {
-                    case 0:
+                    case 0: //Low
                         HC = HitChance.Low;
                         break;
-                    case 1:
+                    case 1: //Medium
                         HC = HitChance.Medium;
                         break;
-                    case 2:
+                    case 2: //High
                         HC = HitChance.High;
                         break;
-                    case 3:
+                    case 3: //Very High
                         HC = HitChance.VeryHigh;
+                        break;
+                    case 4: //impossable
+                        HC = HitChance.Impossible;
                         break;
                 }
                 Q.CastIfHitchanceEquals(qTarget, HC, true);
