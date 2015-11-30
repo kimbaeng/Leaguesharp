@@ -8,9 +8,6 @@ using SharpDX;
 
 namespace Kimbaeng_KarThus
 {
-    using System.Configuration;
-    using System.Diagnostics.Eventing.Reader;
-
     class Program
     {
         public static Menu _menu;
@@ -76,7 +73,11 @@ namespace Kimbaeng_KarThus
             harassMenu.AddItem(new MenuItem("useEHarass", "UseE").SetValue(true));
 
             var LastHitMenu = _menu.AddSubMenu(new Menu("LastHit", "LastHit"));
-            LastHitMenu.AddItem(new MenuItem("useQLastHit", "LastHit With Q").SetValue(true));
+            LastHitMenu.AddItem(new MenuItem("useqlasthit", "LastHit With Q").SetValue(true));
+
+            //var FreezeMenu = _menu.AddSubMenu(new Menu("Freeze", "Freeze"));
+            //FreezeMenu.AddItem(new MenuItem("Freeze", "Freeze").SetValue(new KeyBind('Z', KeyBindType.Press)));
+            //FreezeMenu.AddItem(new MenuItem("string", "Only Attack One Minion key"));
 
             var MiscMenu = _menu.AddSubMenu(new Menu("Misc", "Misc"));
             MiscMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
@@ -100,13 +101,19 @@ namespace Kimbaeng_KarThus
         private static void Game_OnUpdate(EventArgs args)	
         {
             if (_menu.Item("NotifyUlt").GetValue<bool>())
+            {
                 AutoUlt();
+            }
 
             if (_menu.Item("NotifyPing").GetValue<bool>())
+            {
                 NotifyPing();
+            }
 
             if (_menu.Item("AutoQ").GetValue<bool>())
+            {
                 AutoQ();
+            }
 
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
             {
@@ -239,29 +246,37 @@ namespace Kimbaeng_KarThus
 
         private static void LastHit()
         {
-            var useQ = _menu.Item("useQLastHit").GetValue<bool>();
-
-            if (!useQ || !Q.IsReady())
-                return;
-
-            var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,
-                MinionTeam.NotAlly);
-            minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
-            if (minions.Count >= 4)
+            var useQ = _menu.Item("useqlasthit").GetValue<bool>();
+            if (useQ == false)
             {
-
-                foreach (var minion in
-                    minions.Where(
-                        x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
-                             //FirstDamage = multitarget hit, differentiate! (check radius around mob predicted pos)
-                             HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
-                {
-                    Q.Cast(minion);
-                }
+                _orbwalker.SetAttack(true);
             }
-            else
+                else
             {
-                Farm();
+                if (!Q.IsReady()) return;
+
+                var minions = MinionManager.GetMinions(
+                    ObjectManager.Player.ServerPosition,
+                    Q.Range,
+                    MinionTypes.All,
+                    MinionTeam.NotAlly);
+                minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
+                if (minions.Count >= 3)
+                {
+
+                    foreach (var minion in
+                        minions.Where(
+                            x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
+                                 //FirstDamage = multitarget hit, differentiate! (check radius around mob predicted pos)
+                                 HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
+                    {
+                        Q.Cast(minion);
+                    }
+                }
+                else
+                {
+                    Farm();
+                }
             }
         }
 
