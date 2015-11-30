@@ -261,16 +261,14 @@ namespace Kimbaeng_KarThus
             {
                 if (!Q.IsReady()) return;
 
-                var minions = MinionManager.GetMinions(
-                    ObjectManager.Player.ServerPosition,
-                    Q.Range,
-                    MinionTypes.All,
-                    MinionTeam.NotAlly);
+                var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All, MinionTeam.NotAlly);
+                var eminions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly);
                 minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
-                if (minions.Count == 0)
+                if (eminions.Count == 0)
                 {
                     RegulateEState();
                 }
+
                 else if (minions.Count >= 4)
                 {
 
@@ -298,8 +296,9 @@ namespace Kimbaeng_KarThus
             bool jungleMobs;
             if (Q.IsReady())
             {
-                minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition,Q.Range,MinionTypes.All,MinionTeam.NotAlly);
-                minions.RemoveAll(x => x.MaxHealth <= 5);
+                minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All, MinionTeam.NotAlly);
+                var eminions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly);
+                minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
 
                 jungleMobs = minions.Any(x => x.Team == GameObjectTeam.Neutral);
 
@@ -310,7 +309,7 @@ namespace Kimbaeng_KarThus
                 {
                     Q.Cast(farmInfo.Position,jungleMobs);
                 }
-                else
+                else if (eminions.Count == 0)
                 {
                     RegulateEState();
                 }
@@ -515,18 +514,14 @@ namespace Kimbaeng_KarThus
                 }
                 Q.CastIfHitchanceEquals(qTarget, HC, true);
             }
-            else
+            if (eTarget != null && UseE && E.IsReady() && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
             {
-                RegulateEState();
+                E.Cast();
             }
-            //if (eTarget != null && UseE && E.IsReady() && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
-            //{
-            //    E.Cast();
-            //}
-            //else if (eTarget == null && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 1)
-            //{
-            //    E.Cast();
-            //}
+            else if (eTarget == null && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 1)
+            {
+                E.Cast();
+            }
         }
 
     }
