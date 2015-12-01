@@ -58,7 +58,7 @@ namespace Kimbaeng_KarThus
             _orbwalker.SetAttack(true);
 
             var HitchanceMenu = _menu.AddSubMenu(new Menu("Hitchance", "Hitchance"));
-            HitchanceMenu.AddItem(new MenuItem("Hitchance", "Hitchance").SetValue(new StringList(new[] { "Low", "Medium", "High", "VeryHigh", "Impossible"},3)));
+            HitchanceMenu.AddItem(new MenuItem("Hitchance", "Hitchance").SetValue(new StringList(new[] { "Low", "Medium", "High", "VeryHigh", "Impossible"},4)));
             
             var comboMenu = _menu.AddSubMenu(new Menu("combo", "Combo"));
             comboMenu.AddItem(new MenuItem("useQ", "Use Q").SetValue(true));
@@ -71,6 +71,7 @@ namespace Kimbaeng_KarThus
             var harassMenu = _menu.AddSubMenu(new Menu("Harass", "Harass"));
             harassMenu.AddItem(new MenuItem("useQHarass", "UseQ").SetValue(true));
             harassMenu.AddItem(new MenuItem("useEHarass", "UseE").SetValue(true));
+            harassMenu.AddItem(new MenuItem("harassAA", "Use AA").SetValue(false));
             harassMenu.AddItem(new MenuItem("autoqh", "Auto Q Harass").SetValue(false));
             harassMenu.AddItem(new MenuItem("harassmana", "Mana %").SetValue(new Slider(50)));
 
@@ -123,7 +124,9 @@ namespace Kimbaeng_KarThus
 
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed || 
                 _menu.Item("autoqh").GetValue<bool>() && _menu.Item("harassmana").GetValue<Slider>().Value < ObjectManager.Player.ManaPercent)
-                {
+            {
+                _orbwalker.SetAttack(
+                    _menu.Item("harassAA").GetValue<bool>());
                     Harass();
                 }
             
