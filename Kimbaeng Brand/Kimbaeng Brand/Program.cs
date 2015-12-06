@@ -64,7 +64,7 @@ namespace Kimbaeng_Brand
             comboMenu.AddItem(new MenuItem("useCQ", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem("useCW", "Use W").SetValue(true));
             comboMenu.AddItem(new MenuItem("useCE", "Use E").SetValue(true));
-            comboMenu.AddItem(new MenuItem("useCR", "Use R").SetValue(false));
+            comboMenu.AddItem(new MenuItem("useCR", "Use R").SetValue(true));
             comboMenu.AddItem(new MenuItem("useCI", "Use Ignite").SetValue(true));
 
             var harassMenu = _Menu.AddSubMenu(new Menu("Harass", "Harass"));
@@ -135,7 +135,7 @@ namespace Kimbaeng_Brand
             var useR = _Menu.Item("useCR").GetValue<bool>();
             var UseI = _Menu.Item("useCI").GetValue<bool>();
             var HC = HitChance.High;
-            var Target = TargetSelector.GetTarget(W.Range, TargetSelector.DamageType.Magical);
+            var Target = TargetSelector.GetTarget(W.Range-50, TargetSelector.DamageType.Magical);
             switch (_Menu.Item("Hitchance").GetValue<StringList>().SelectedIndex)
             {
                 case 0: //Low
