@@ -41,9 +41,7 @@ namespace Kimbaeng_Brand
 
             Q.SetSkillshot(0.25f,60, 1600, true, SkillshotType.SkillshotLine);
             W.SetSkillshot(1, 240, float.MaxValue, false, SkillshotType.SkillshotCircle);
-            //E.SetTargetted(0.25f, float.MaxValue);
-            //R.SetTargetted(0.25f, 1000);
-
+            
             IgniteSlot = ObjectManager.Player.GetSpellSlot("SummonerDot");
 
             (_Menu = new Menu("Kimbaeng Brand", "kimbaengbrand", true)).AddToMainMenu();
@@ -61,11 +59,11 @@ namespace Kimbaeng_Brand
                     new StringList(new[] { "Low", "Medium", "High", "VeryHigh", "Impossible" }, 2)));
 
             var comboMenu = _Menu.AddSubMenu(new Menu("Combo", "Combo"));
-            comboMenu.AddItem(new MenuItem("useCQ", "UseQ").SetValue(true));
-            comboMenu.AddItem(new MenuItem("useCW", "UseW").SetValue(true));
-            comboMenu.AddItem(new MenuItem("useCE", "UseE").SetValue(true));
-            comboMenu.AddItem(new MenuItem("useCR", "UseR").SetValue(true));
-            comboMenu.AddItem(new MenuItem("UseCI", "Use Ignite").SetValue(true));
+            comboMenu.AddItem(new MenuItem("useCQ", "Use Q").SetValue(true));
+            comboMenu.AddItem(new MenuItem("useCW", "Use W").SetValue(true));
+            comboMenu.AddItem(new MenuItem("useCE", "Use E").SetValue(true));
+            comboMenu.AddItem(new MenuItem("useCR", "Use R").SetValue(true));
+            comboMenu.AddItem(new MenuItem("useCI", "Use Ignite").SetValue(true));
 
             var harassMenu = _Menu.AddSubMenu(new Menu("Harass", "Harass"));
             harassMenu.AddItem(new MenuItem("useHQ", "UseQ").SetValue(true));
@@ -74,8 +72,8 @@ namespace Kimbaeng_Brand
             harassMenu.AddItem(new MenuItem("ManaManagerH", "Mana %").SetValue(new Slider(60,1,100)));
 
             var laneMenu = _Menu.AddSubMenu(new Menu("Lane Clear", "laneclear"));
-            laneMenu.AddItem(new MenuItem("UseLW", "Use W").SetValue(true));
-            laneMenu.AddItem(new MenuItem("UseLE", "Use E").SetValue(true));
+            laneMenu.AddItem(new MenuItem("useLW", "Use W").SetValue(true));
+            laneMenu.AddItem(new MenuItem("useLE", "Use E").SetValue(true));
             laneMenu.AddItem(new MenuItem("ManaManagerL", "Mana %").SetValue(new Slider(30, 1, 100)));
 
             var LastHitMenu = _Menu.AddSubMenu(new Menu("LastHit", "LastHit"));
@@ -133,7 +131,7 @@ namespace Kimbaeng_Brand
             var useR = _Menu.Item("useCR").GetValue<bool>();
             var UseI = _Menu.Item("useCI").GetValue<bool>();
             var HC = HitChance.High;
-            var Target = TargetSelector.GetTarget(W.Range - 50, TargetSelector.DamageType.Magical);
+            var Target = TargetSelector.GetTarget(W.Range, TargetSelector.DamageType.Magical);
             switch (_Menu.Item("Hitchance").GetValue<StringList>().SelectedIndex)
             {
                 case 0: //Low
@@ -156,33 +154,25 @@ namespace Kimbaeng_Brand
             {
                 if (Player.Distance(Target.Position) < E.Range)
                 {
-                    if (E.IsReady() && useE)
-                        E.Cast(Target);
-                    if (Q.IsReady() && Target.HasBuff("brandablaze") && useQ)
-                        Q.CastIfHitchanceEquals(Target, HC);
-                    if (W.IsReady() && useW)
-                        W.CastIfHitchanceEquals(Target, HC);
-                    if (R.IsReady() && useR)
-                        R.Cast(Target);
+                    if (E.IsReady() && useE) E.Cast(Target);
+                    if (Q.IsReady() && Target.HasBuff("brandablaze") && useQ) Q.CastIfHitchanceEquals(Target, HC);
+                    if (W.IsReady() && useW) W.CastIfHitchanceEquals(Target, HC);
+                    if (R.IsReady() && useR) R.Cast(Target);
                 }
                 else
                 {
-                    if (W.IsReady() && useW)
-                        W.CastIfHitchanceEquals(Target, HC);
-                    if (Q.IsReady() && Target.HasBuff("brandablaze") && useQ)
-                        Q.CastIfHitchanceEquals(Target, HC);
-                    if (E.IsReady() && useE)
-                        E.Cast(Target);
-                    if (R.IsReady() && useR)
-                        R.Cast(Target);
+                    if (W.IsReady() && useW) W.CastIfHitchanceEquals(Target, HC);
+                    if (Q.IsReady() && Target.HasBuff("brandablaze") && useQ) Q.CastIfHitchanceEquals(Target, HC);
+                    if (E.IsReady() && useE) E.Cast(Target);
+                    if (R.IsReady() && useR) R.Cast(Target);
                 }
-            }
-            if (IgniteSlot != SpellSlot.Unknown &&
+                if (IgniteSlot != SpellSlot.Unknown &&
                 ObjectManager.Player.Spellbook.CanUseSpell(IgniteSlot) == SpellState.Ready &&
                 ObjectManager.Player.Distance(Target.ServerPosition) < 600 &&
                 Player.GetSummonerSpellDamage(Target, Damage.SummonerSpell.Ignite) > Target.Health && UseI)
-            {
-                ObjectManager.Player.Spellbook.CastSpell(IgniteSlot, Target);
+                {
+                    ObjectManager.Player.Spellbook.CastSpell(IgniteSlot, Target);
+                }
             }
         }
 
@@ -239,8 +229,8 @@ namespace Kimbaeng_Brand
 
         static void LaneClear()
         {
-            var useW = _Menu.Item("useHW").GetValue<bool>();
-            var useE = _Menu.Item("useHE").GetValue<bool>();
+            var useW = _Menu.Item("useLW").GetValue<bool>();
+            var useE = _Menu.Item("useLE").GetValue<bool>();
             List<Obj_AI_Base> minions;
             bool jungleMobs;
 
