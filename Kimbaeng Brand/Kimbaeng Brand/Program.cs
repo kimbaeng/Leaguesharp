@@ -64,7 +64,7 @@ namespace Kimbaeng_Brand
             comboMenu.AddItem(new MenuItem("useCQ", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem("useCW", "Use W").SetValue(true));
             comboMenu.AddItem(new MenuItem("useCE", "Use E").SetValue(true));
-            comboMenu.AddItem(new MenuItem("useCR", "Use R").SetValue(true));
+            comboMenu.AddItem(new MenuItem("useCR", "Use R").SetValue(false));
             comboMenu.AddItem(new MenuItem("useCI", "Use Ignite").SetValue(true));
 
             var harassMenu = _Menu.AddSubMenu(new Menu("Harass", "Harass"));
@@ -87,12 +87,13 @@ namespace Kimbaeng_Brand
             DrawMenu.AddItem(new MenuItem("drawW", "DrawW").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawE", "DrawE").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawR", "DrawR").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
-            DrawMenu.AddItem(new MenuItem("drawdmg", "Draw Damage").SetValue(true));
+            //DrawMenu.AddItem(new MenuItem("drawdmg", "Draw Damage").SetValue(true));
 
             Game.OnUpdate += Game_onUpdate;
             Drawing.OnDraw += Drawing_Ondraw;
 
-            Game.PrintChat("<font color=\"#FF0000\">Kimbaeng Brand</font> Loaded");
+            Game.PrintChat("<font color=\"#ED4C00\">Kimbaeng Brand</font> Loaded ");
+            Game.PrintChat("If You like this Assembly plz <font color=\"#1DDB16\">Upvote</font> XD ");
         }
 
         static void Game_onUpdate(EventArgs args)
@@ -317,7 +318,7 @@ namespace Kimbaeng_Brand
                     Text.OnEndScene();
                 }
 
-                Drawing.DrawLine((float)xPosDamage, yPos, (float)xPosDamage, yPos + Height, 2, System.Drawing.Color.Chocolate);
+                Drawing.DrawLine((float)xPosDamage, yPos, (float)xPosDamage, yPos + Height, 2, System.Drawing.Color.DarkGray);
             }
         }
 
@@ -369,8 +370,8 @@ namespace Kimbaeng_Brand
                 if (R.Instance.Level == 0) return;
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, E.Range, eValue.Color);
             }
-            if (_Menu.Item("drawdmg").GetValue<bool>())
-                DrawHPBarDamage();
+            //if (_Menu.Item("drawdmg").GetValue<bool>())
+            //    DrawHPBarDamage();
         }
   
     }
