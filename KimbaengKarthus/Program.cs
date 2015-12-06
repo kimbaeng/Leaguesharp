@@ -8,24 +8,37 @@ using SharpDX;
 
 namespace Kimbaeng_KarThus
 {
-    class Program
+    internal class Program
     {
         public static Menu _menu;
+
         public static HpBarIndicator Hpi = new HpBarIndicator();
+
         private static Obj_AI_Hero Player;
+
         private static Orbwalking.Orbwalker _orbwalker;
+
         public static Spell Q;
+
         public static Spell W;
+
         public static Spell E;
+
         public static Spell R;
+
         private static bool _comboE;
+
         private static Vector2 PingLocation;
+
         private static int LastPingT = 0;
+
         private const float SpellQWidth = 160f;
+
         private const float SpellWWidth = 160f;
+
         public static SpellSlot IgniteSlot;
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += Game_OnGameLoad;
         }
@@ -37,14 +50,14 @@ namespace Kimbaeng_KarThus
                 return;
             }
 
-			Player = ObjectManager.Player;
+            Player = ObjectManager.Player;
             IgniteSlot = ObjectManager.Player.GetSpellSlot("SummonerDot");
             Q = new Spell(SpellSlot.Q, 875);
             W = new Spell(SpellSlot.W, 1000);
             E = new Spell(SpellSlot.E, 550);
             R = new Spell(SpellSlot.R, 20000f);
 
-			Q.SetSkillshot(0.66f, 160f, 2000, false, SkillshotType.SkillshotCircle);
+            Q.SetSkillshot(0.66f, 160f, 2000, false, SkillshotType.SkillshotCircle);
             W.SetSkillshot(0.65f, 100f, 1600f, false, SkillshotType.SkillshotLine);
             E.SetSkillshot(1f, 505, float.MaxValue, false, SkillshotType.SkillshotCircle);
             R.SetSkillshot(3f, float.MaxValue, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -58,8 +71,10 @@ namespace Kimbaeng_KarThus
             _orbwalker.SetAttack(true);
 
             var HitchanceMenu = _menu.AddSubMenu(new Menu("Hitchance", "Hitchance"));
-            HitchanceMenu.AddItem(new MenuItem("Hitchance", "Hitchance").SetValue(new StringList(new[] { "Low", "Medium", "High", "VeryHigh", "Impossible"},4)));
-            
+            HitchanceMenu.AddItem(
+                new MenuItem("Hitchance", "Hitchance").SetValue(
+                    new StringList(new[] { "Low", "Medium", "High", "VeryHigh", "Impossible" }, 4)));
+
             var comboMenu = _menu.AddSubMenu(new Menu("combo", "Combo"));
             comboMenu.AddItem(new MenuItem("useQ", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem("useW", "Use W").SetValue(true));
@@ -67,7 +82,7 @@ namespace Kimbaeng_KarThus
             comboMenu.AddItem(new MenuItem("comboAA", "Use AA").SetValue(false));
             comboMenu.AddItem(new MenuItem("string", "if No Mana(100↓), Allow Use AA"));
             comboMenu.AddItem(new MenuItem("UseI", "Use Ignite").SetValue(true));
-            
+
             var harassMenu = _menu.AddSubMenu(new Menu("Harass", "Harass"));
             harassMenu.AddItem(new MenuItem("useQHarass", "UseQ").SetValue(true));
             harassMenu.AddItem(new MenuItem("useEHarass", "UseE").SetValue(true));
@@ -80,8 +95,8 @@ namespace Kimbaeng_KarThus
 
             var MiscMenu = _menu.AddSubMenu(new Menu("Misc", "Misc"));
             var ultMenu = MiscMenu.AddSubMenu(new Menu("Ult", "Ult"));
-                ultMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
-                ultMenu.AddItem(new MenuItem("NotifyPing", "Notify Ult Ping").SetValue(true));
+            ultMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
+            ultMenu.AddItem(new MenuItem("NotifyPing", "Notify Ult Ping").SetValue(true));
 
             MiscMenu.AddItem(new MenuItem("AutoQ", "AutoQ Immobile Enemy").SetValue(true));
 
@@ -93,12 +108,12 @@ namespace Kimbaeng_KarThus
 
             Drawing.OnDraw += Drawing_Ondraw;
             Game.OnUpdate += Game_OnUpdate;
-            
-            Game.PrintChat("Kimbaeng's Karthus <font color=\"#FF0000\">Loaded</font>");
+
+            Game.PrintChat("<font color=\"#FF0000\">Kimbaeng Karthus</font> Loaded");
 
         }
 
-        private static void Game_OnUpdate(EventArgs args)	
+        private static void Game_OnUpdate(EventArgs args)
         {
             if (_menu.Item("NotifyUlt").GetValue<bool>())
             {
@@ -117,23 +132,24 @@ namespace Kimbaeng_KarThus
 
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
             {
-                _orbwalker.SetAttack(_menu.Item("comboAA").GetValue<bool>() || ObjectManager.Player.Mana < 100); //if no mana, allow auto attacks!
+                _orbwalker.SetAttack(_menu.Item("comboAA").GetValue<bool>() || ObjectManager.Player.Mana < 100);
+                    //if no mana, allow auto attacks!
                 Combo();
             }
-                
 
-            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed || 
-                _menu.Item("autoqh").GetValue<bool>() && _menu.Item("harassmana").GetValue<Slider>().Value < ObjectManager.Player.ManaPercent)
+
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed
+                || _menu.Item("autoqh").GetValue<bool>()
+                && _menu.Item("harassmana").GetValue<Slider>().Value < ObjectManager.Player.ManaPercent)
             {
-                _orbwalker.SetAttack(
-                    _menu.Item("harassAA").GetValue<bool>());
-                    Harass();
-                }
-            
+                _orbwalker.SetAttack(_menu.Item("harassAA").GetValue<bool>());
+                Harass();
+            }
+
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
-                {
-                    LaneClear();
-                }
+            {
+                LaneClear();
+            }
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
             {
                 _orbwalker.SetAttack(false);
@@ -214,6 +230,7 @@ namespace Kimbaeng_KarThus
                     Ping(enemy.Position.To2D());
                 }
         }
+
         private static void AutoQ()
         {
             if (!Q.IsReady())
@@ -243,7 +260,12 @@ namespace Kimbaeng_KarThus
             var allMinions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
             if (Q.IsReady())
             {
-                foreach (var minion in allMinions.Where(x => Player.GetSpellDamage(x, SpellSlot.Q) >= HealthPrediction.GetHealthPrediction(x, (int)(800))))
+                foreach (
+                    var minion in
+                        allMinions.Where(
+                            x =>
+                            Player.GetSpellDamage(x, SpellSlot.Q) >= HealthPrediction.GetHealthPrediction(x, (int)(800)))
+                    )
                 {
                     FarmCast(minion);
                 }
@@ -253,16 +275,20 @@ namespace Kimbaeng_KarThus
         private static void LastHit()
         {
             var useQ = _menu.Item("useqlasthit").GetValue<bool>();
-            if (useQ == false)
-            {
-                _orbwalker.SetAttack(true);
-            }
-                else
-            {
-                if (!Q.IsReady()) return;
 
-                var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All, MinionTeam.NotAlly);
-                var eminions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly);
+            if (!Q.IsReady() || !Orbwalking.CanMove(40) && !useQ)
+                return;
+            {
+            var minions = MinionManager.GetMinions(
+                    ObjectManager.Player.ServerPosition,
+                    Q.Range,
+                    MinionTypes.All,
+                    MinionTeam.NotAlly);
+                var eminions = MinionManager.GetMinions(
+                    ObjectManager.Player.ServerPosition,
+                    E.Range,
+                    MinionTypes.All,
+                    MinionTeam.NotAlly);
                 minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
                 if (eminions.Count == 0)
                 {
@@ -295,8 +321,16 @@ namespace Kimbaeng_KarThus
             bool jungleMobs;
             if (Q.IsReady())
             {
-                minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All, MinionTeam.NotAlly);
-                var eminions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly);
+                minions = MinionManager.GetMinions(
+                    ObjectManager.Player.ServerPosition,
+                    Q.Range,
+                    MinionTypes.All,
+                    MinionTeam.NotAlly);
+                var eminions = MinionManager.GetMinions(
+                    ObjectManager.Player.ServerPosition,
+                    E.Range,
+                    MinionTypes.All,
+                    MinionTeam.NotAlly);
                 minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
 
                 jungleMobs = minions.Any(x => x.Team == GameObjectTeam.Neutral);
@@ -306,7 +340,11 @@ namespace Kimbaeng_KarThus
 
                 if (farmInfo.MinionsHit >= 1)
                 {
-                    Q.Cast(farmInfo.Position,jungleMobs);
+                    Q.Cast(farmInfo.Position, jungleMobs);
+                }
+                if (farmInfo.MinionsHit >= 3)
+                {
+                    E.Cast();
                 }
                 else if (eminions.Count == 0)
                 {
@@ -315,25 +353,6 @@ namespace Kimbaeng_KarThus
             }
         }
 
-        //{
-        //    var rangedMinions = MinionManager.GetMinions(
-        //        ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.Ranged,);
-        //    var allMinions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
-        //    if (Q.IsReady())
-        //    {
-        //        var rangedLocation = Q.GetCircularFarmLocation(rangedMinions);
-        //        var location = Q.GetCircularFarmLocation(allMinions);
-
-            //        var bLocation = (location.MinionsHit > rangedLocation.MinionsHit + 1) ? location : rangedLocation;
-            //
-            //       if (bLocation.MinionsHit > 0)
-            //        {
-            //            Q.Cast(bLocation.Position.To3D());
-            //        }
-            //    }
-            //}
-
-
         public static Vector3 FindHitPosition(PredictionOutput minion) //Trus Logic
         {
             int multihit = 1;
@@ -341,7 +360,10 @@ namespace Kimbaeng_KarThus
             {
                 for (int a = -100; a < 100; a = a + 10)
                 {
-                    Vector3 tempposition = new Vector3(minion.UnitPosition.X + i, minion.UnitPosition.Y + a, minion.UnitPosition.Z);
+                    Vector3 tempposition = new Vector3(
+                        minion.UnitPosition.X + i,
+                        minion.UnitPosition.Y + a,
+                        minion.UnitPosition.Z);
                     multihit = CheckMultiHit(tempposition);
                     if (multihit == 1)
                     {
@@ -349,22 +371,20 @@ namespace Kimbaeng_KarThus
                     }
                 }
             }
-                return new Vector3(0,0,0);
+            return new Vector3(0, 0, 0);
         }
-    
-        static int CheckMultiHit(Vector3 minion) //Trus Logic
+
+        private static int CheckMultiHit(Vector3 minion) //Trus Logic
         {
             var count = 0;
             var allMinions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
-            foreach (
-                Obj_AI_Base minionvar in
-                    allMinions.Where(
-                        x => Vector3.Distance(minion, Prediction.GetPrediction(x, 250f).UnitPosition) < 200))
+            foreach (Obj_AI_Base minionvar in
+                allMinions.Where(x => Vector3.Distance(minion, Prediction.GetPrediction(x, 250f).UnitPosition) < 200))
             {
                 count++;
             }
-           
-            
+
+
             return count;
         }
 
@@ -374,22 +394,23 @@ namespace Kimbaeng_KarThus
             var position = FindHitPosition(Prediction.GetPrediction(minion, 250f));
             if (!(position.X == 0 && position.Y == 0 && position.Z == 0))
             {
-               // Console.WriteLine("Cast Q: " + position.X + " : " + position.Y + " : " + position.Z);
+                // Console.WriteLine("Cast Q: " + position.X + " : " + position.Y + " : " + position.Z);
                 Q.Cast(position);
             }
         }
 
         private static void RegulateEState(bool ignoreTargetChecks = false)
         {
-            if (!E.IsReady() || IsInPassiveForm() ||
-                ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 2)
-                return;
+            if (!E.IsReady() || IsInPassiveForm()
+                || ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 2) return;
             var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
-            var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All,
+            var minions = MinionManager.GetMinions(
+                ObjectManager.Player.ServerPosition,
+                E.Range,
+                MinionTypes.All,
                 MinionTeam.NotAlly);
 
-            if (!ignoreTargetChecks && (target != null || (!_comboE && minions.Count != 0)))
-                return;
+            if (!ignoreTargetChecks && (target != null || (!_comboE && minions.Count != 0))) return;
             E.CastOnUnit(ObjectManager.Player);
             _comboE = false;
         }
@@ -399,7 +420,16 @@ namespace Kimbaeng_KarThus
             return ObjectManager.Player.IsZombie;
         }
 
-        private static void Ping(Vector2 position)
+        private static void PassiveForm()
+        {
+            if (IsInPassiveForm())
+            {
+                return;
+            }
+
+        }
+
+    private static void Ping(Vector2 position)
         {
             if (LeagueSharp.Common.Utils.TickCount - LastPingT < 30 * 1000)
             {
@@ -428,7 +458,7 @@ namespace Kimbaeng_KarThus
             var UseQ = _menu.Item("useQ").GetValue<bool>();
             var UseW = _menu.Item("useW").GetValue<bool>();
             var UseE = _menu.Item("useE").GetValue<bool>();
-            if (qTarget != null &&  UseQ && Q.IsReady())
+            if (qTarget != null &&  UseQ && Q.IsReady() && qTarget.IsValidTarget())
             {
                var HC = HitChance.VeryHigh;
                 switch (_menu.Item("Hitchance").GetValue<StringList>().SelectedIndex)
@@ -464,7 +494,7 @@ namespace Kimbaeng_KarThus
                 E.Cast();
                 }
 
-            if (wTarget != null && UseW  && W.IsReady())
+            if (wTarget != null && UseW  && W.IsReady() && wTarget.IsValidTarget())
             {
                 W.Cast(wTarget, false, true);
             }
