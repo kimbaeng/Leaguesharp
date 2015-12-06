@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LeagueSharp;
 using LeagueSharp.Common;
-
+using SharpDX;
 
 namespace Kimbaeng_Brand
 {
@@ -22,6 +22,8 @@ namespace Kimbaeng_Brand
 
         public static SpellSlot IgniteSlot;
 
+        static readonly Render.Text Text = new Render.Text(
+                                               0, 0, "", 11, new ColorBGRA(255, 0, 0, 255), "monospace");
         static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += Game_onGameLoad;
@@ -85,6 +87,7 @@ namespace Kimbaeng_Brand
             DrawMenu.AddItem(new MenuItem("drawW", "DrawW").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawE", "DrawE").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawR", "DrawR").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
+            DrawMenu.AddItem(new MenuItem("drawdmg", "Draw Damage").SetValue(true));
 
             Game.OnUpdate += Game_onUpdate;
             Drawing.OnDraw += Drawing_Ondraw;
@@ -291,6 +294,47 @@ namespace Kimbaeng_Brand
                 }
             }
         }
+        static void DrawHPBarDamage()
+        {
+            const int XOffset = 10;
+            const int YOffset = 20;
+            const int Width = 103;
+            const int Height = 8;
+            foreach (var unit in ObjectManager.Get<Obj_AI_Hero>().Where(h => h.IsValid && h.IsHPBarRendered && h.IsEnemy))
+            {
+                var barPos = unit.HPBarPosition;
+                var damage = getComboDamage(unit);
+                var percentHealthAfterDamage = Math.Max(0, unit.Health - damage) / unit.MaxHealth;
+                var yPos = barPos.Y + YOffset;
+                var xPosDamage = barPos.X + XOffset + Width * percentHealthAfterDamage;
+                var xPosCurrentHp = barPos.X + XOffset + Width * unit.Health / unit.MaxHealth;
+
+                if (damage > unit.Health)
+                {
+                    Text.X = (int)barPos.X + XOffset;
+                    Text.Y = (int)barPos.Y + YOffset - 13;
+                    Text.text = ((int)(unit.Health - damage)).ToString();
+                    Text.OnEndScene();
+                }
+
+                Drawing.DrawLine((float)xPosDamage, yPos, (float)xPosDamage, yPos + Height, 2, System.Drawing.Color.Chocolate);
+            }
+        }
+
+        static double getComboDamage(Obj_AI_Base target)
+        {
+            double damage = Player.GetAutoAttackDamage(target);
+            if (Q.IsReady() && _Menu.Item("comboUseQ").GetValue<bool>())
+                damage += Player.GetSpellDamage(target, SpellSlot.Q);
+            if (W.IsReady() && _Menu.Item("comboUseW").GetValue<bool>())
+                damage += Player.GetSpellDamage(target, SpellSlot.W);
+            if (E.IsReady() && _Menu.Item("comboUseE").GetValue<bool>())
+                damage += Player.GetSpellDamage(target, SpellSlot.E);
+            if (R.IsReady() && _Menu.Item("comboUseR").GetValue<bool>())
+                damage += Player.GetSpellDamage(target, SpellSlot.R);
+
+            return damage;
+        }
 
         static void Drawing_Ondraw(EventArgs args)
         {
@@ -325,6 +369,8 @@ namespace Kimbaeng_Brand
                 if (R.Instance.Level == 0) return;
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, E.Range, eValue.Color);
             }
+            if (_Menu.Item("drawdmg").GetValue<bool>())
+                DrawHPBarDamage();
         }
   
     }
