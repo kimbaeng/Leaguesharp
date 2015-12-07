@@ -10,7 +10,7 @@ using SharpDX;
 namespace Kimbaeng_Brand
 {
 
-    class Program
+    internal class Program
     {
         public static Menu _Menu;
 
@@ -160,15 +160,15 @@ namespace Kimbaeng_Brand
                 {
                     if (E.IsReady() && useE) E.Cast(Target);
                     if (Q.IsReady() && Target.HasBuff("brandablaze") && useQ) Q.CastIfHitchanceEquals(Target, HC);
-                    if (W.IsReady() && useW) W.CastIfHitchanceEquals(Target, HC);
-                    if (R.IsReady() && useR) R.Cast(Target);
+                    if (W.IsReady() && useW && Target.HasBuff("brandablaze")) W.CastIfHitchanceEquals(Target, HC);
+                    if (R.IsReady() && useR && Target.HasBuff("brandablaze")) R.Cast(Target);
                 }
                 else
                 {
                     if (W.IsReady() && useW) W.CastIfHitchanceEquals(Target, HC);
                     if (Q.IsReady() && Target.HasBuff("brandablaze") && useQ) Q.CastIfHitchanceEquals(Target, HC);
-                    if (E.IsReady() && useE) E.Cast(Target);
-                    if (R.IsReady() && useR) R.Cast(Target);
+                    if (E.IsReady() && useE && Target.HasBuff("brandablaze")) E.Cast(Target);
+                    if (R.IsReady() && useR && Target.HasBuff("brandablaze")) R.Cast(Target);
                 }
                 if (IgniteSlot != SpellSlot.Unknown &&
                 ObjectManager.Player.Spellbook.CanUseSpell(IgniteSlot) == SpellState.Ready &&
@@ -216,7 +216,7 @@ namespace Kimbaeng_Brand
                         E.Cast(Target);
                     if (Q.IsReady() && useQ && Target.HasBuff("brandablaze"))
                         Q.CastIfHitchanceEquals(Target, HC);
-                    if (W.IsReady() && useW)
+                    if (W.IsReady() && useW && Target.HasBuff("brandablaze"))
                         W.CastIfHitchanceEquals(Target, HC);
                 }
                 else
@@ -294,6 +294,10 @@ namespace Kimbaeng_Brand
                     }
                 }
             }
+        }
+        public static void debug(string msg)
+        {
+                Console.WriteLine(msg);
         }
         static void DrawHPBarDamage()
         {
