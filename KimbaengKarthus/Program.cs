@@ -101,7 +101,7 @@ namespace Kimbaeng_KarThus
             ultMenu.AddItem(new MenuItem("NotifyPing", "Notify Ult Ping").SetValue(true));
 
             MiscMenu.AddItem(new MenuItem("AutoQ", "AutoQ Immobile Enemy").SetValue(true));
-            MiscMenu.AddItem(new MenuItem("estate", "Auto E OFF").SetValue(true));
+            MiscMenu.AddItem(new MenuItem("estate", "Auto E if No Target").SetValue(true));
 
             var DrawMenu = _menu.AddSubMenu(new Menu("Draw", "drawing"));
             DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(false));
