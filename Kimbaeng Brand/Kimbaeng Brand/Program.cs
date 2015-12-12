@@ -209,9 +209,6 @@ namespace Kimbaeng_Brand
             {
                 if (Player.Distance(Target.Position) < E.Range)
                 {
-                    if (Q.IsReady() && E.IsReady() && useQ && useE && Target.IsValidTarget())
-                        Q.CastIfHitchanceEquals(Target, HC);
-                        E.Cast(Target);
                     if (E.IsReady() && useE)
                         E.Cast(Target);
                     if (Q.IsReady() && useQ && Target.HasBuff("brandablaze"))

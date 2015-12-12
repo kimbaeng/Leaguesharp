@@ -8,6 +8,8 @@ using SharpDX;
 
 namespace Kimbaeng_KarThus
 {
+    using System.Runtime.Remoting.Messaging;
+
     internal class Program
     {
         public static Menu _menu;
@@ -99,6 +101,7 @@ namespace Kimbaeng_KarThus
             ultMenu.AddItem(new MenuItem("NotifyPing", "Notify Ult Ping").SetValue(true));
 
             MiscMenu.AddItem(new MenuItem("AutoQ", "AutoQ Immobile Enemy").SetValue(true));
+            MiscMenu.AddItem(new MenuItem("estate", "Auto E OFF").SetValue(true));
 
             var DrawMenu = _menu.AddSubMenu(new Menu("Draw", "drawing"));
             DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(false));
@@ -401,18 +404,25 @@ namespace Kimbaeng_KarThus
 
         private static void RegulateEState(bool ignoreTargetChecks = false)
         {
-            if (!E.IsReady() || IsInPassiveForm()
-                || ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 2) return;
-            var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
-            var minions = MinionManager.GetMinions(
-                ObjectManager.Player.ServerPosition,
-                E.Range,
-                MinionTypes.All,
-                MinionTeam.NotAlly);
+            if (_menu.Item("estate").GetValue<bool>())
+            {
+                if (!E.IsReady() || IsInPassiveForm()
+                    || ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 2) return;
+                var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
+                var minions = MinionManager.GetMinions(
+                    ObjectManager.Player.ServerPosition,
+                    E.Range,
+                    MinionTypes.All,
+                    MinionTeam.NotAlly);
 
-            if (!ignoreTargetChecks && (target != null || (!_comboE && minions.Count != 0))) return;
-            E.CastOnUnit(ObjectManager.Player);
-            _comboE = false;
+                if (!ignoreTargetChecks && (target != null || (!_comboE && minions.Count != 0))) return;
+                E.CastOnUnit(ObjectManager.Player);
+                _comboE = false;
+            }
+            else
+            {
+                return;
+            }
         }
 
         private static bool IsInPassiveForm()
