@@ -81,6 +81,9 @@ namespace Kimbaeng_Brand
             var LastHitMenu = _Menu.AddSubMenu(new Menu("LastHit", "LastHit"));
             LastHitMenu.AddItem(new MenuItem("useLHQ", "Use Q").SetValue(true));
 
+            var MiscMenu = _Menu.AddSubMenu(new Menu("MISC", "MISC"));
+            MiscMenu.AddItem(new MenuItem("gapclose", "Auto AntiGapcloser(E → Q)").SetValue(true));
+
             var DrawMenu = _Menu.AddSubMenu(new Menu("Drawing", "drawing"));
             DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(false));
             DrawMenu.AddItem(new MenuItem("drawQ", "DrawQ").SetValue(new Circle(true, System.Drawing.Color.Goldenrod)));
@@ -91,7 +94,7 @@ namespace Kimbaeng_Brand
 
             Game.OnUpdate += Game_onUpdate;
             Drawing.OnDraw += Drawing_Ondraw;
-
+            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             Game.PrintChat("<font color=\"#ED4C00\">Kimbaeng Brand</font> Loaded ");
             Game.PrintChat("If You like this Assembly plz <font color=\"#1DDB16\">Upvote</font> XD ");
         }
@@ -129,13 +132,15 @@ namespace Kimbaeng_Brand
 
         static void Combo()
         {
+            var Target = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
+            if (Target == null) return;
+
             var useQ = _Menu.Item("useCQ").GetValue<bool>();
             var useW = _Menu.Item("useCW").GetValue<bool>();
             var useE = _Menu.Item("useCE").GetValue<bool>();
             var useR = _Menu.Item("useCR").GetValue<bool>();
             var UseI = _Menu.Item("useCI").GetValue<bool>();
-            var HC = HitChance.High;
-            var Target = TargetSelector.GetTarget(W.Range-50, TargetSelector.DamageType.Magical);
+            var HC = HitChance.High; 
             switch (_Menu.Item("Hitchance").GetValue<StringList>().SelectedIndex)
             {
                 case 0: //Low
@@ -154,22 +159,47 @@ namespace Kimbaeng_Brand
                     HC = HitChance.Impossible;
                     break;
             }
-            if (Target != null && Target.IsValidTarget())
-            {
                 if (Player.Distance(Target.Position) < E.Range)
                 {
-                    if (E.IsReady() && useE) E.Cast(Target);
-                    if (Q.IsReady() && Target.HasBuff("brandablaze") && useQ) Q.CastIfHitchanceEquals(Target, HC);
-                    if (W.IsReady() && useW && Target.HasBuff("brandablaze")) W.CastIfHitchanceEquals(Target, HC);
-                    if (R.IsReady() && useR && Target.HasBuff("brandablaze")) R.Cast(Target);
+                    if (E.IsReady() && useE && Target.IsValidTarget(E.Range))
+                        E.Cast(Target);
+                if (Q.IsReady() && useQ && Target.IsValidTarget(Q.Range))
+                {
+                    if (Target.HasBuff("brandablaze"))
+                    {
+                        Q.CastIfHitchanceEquals(Target, HC);
+                    }
+                    else
+                    {
+                        Q.CastIfHitchanceEquals(Target, HC);
+                    }
+                }
+                if (W.IsReady() && useW)
+                        W.CastIfHitchanceEquals(Target, HC);
+                    if (R.IsReady() && useR)
+                        R.Cast(Target);
                 }
                 else
                 {
                     if (W.IsReady() && useW) W.CastIfHitchanceEquals(Target, HC);
-                    if (Q.IsReady() && Target.HasBuff("brandablaze") && useQ) Q.CastIfHitchanceEquals(Target, HC);
-                    if (E.IsReady() && useE && Target.HasBuff("brandablaze")) E.Cast(Target);
-                    if (R.IsReady() && useR && Target.HasBuff("brandablaze")) R.Cast(Target);
+                if (Q.IsReady() && useQ && Target.IsValidTarget(Q.Range))
+                {
+                    if (Target.HasBuff("brandablaze"))
+                    {
+                        Q.CastIfHitchanceEquals(Target, HC);
+                    }
+                    else
+                    {
+                        Q.CastIfHitchanceEquals(Target, HC);
+                    }
                 }
+
+                if (E.IsReady() && useE)
+                    E.Cast(Target);
+                if (R.IsReady() && useR)
+                    R.Cast(Target);
+                }
+
                 if (IgniteSlot != SpellSlot.Unknown &&
                 ObjectManager.Player.Spellbook.CanUseSpell(IgniteSlot) == SpellState.Ready &&
                 ObjectManager.Player.Distance(Target.ServerPosition) < 600 &&
@@ -177,7 +207,7 @@ namespace Kimbaeng_Brand
                 {
                     ObjectManager.Player.Spellbook.CastSpell(IgniteSlot, Target);
                 }
-            }
+            
         }
 
         static void Harass()
@@ -205,23 +235,43 @@ namespace Kimbaeng_Brand
                     HC = HitChance.Impossible;
                     break;
             }
-            if (Target != null && Target.IsValidTarget())
+
+            if (Target != null)
             {
                 if (Player.Distance(Target.Position) < E.Range)
                 {
                     if (E.IsReady() && useE)
                         E.Cast(Target);
-                    if (Q.IsReady() && useQ && Target.HasBuff("brandablaze"))
-                        Q.CastIfHitchanceEquals(Target, HC);
-                    if (W.IsReady() && useW && Target.HasBuff("brandablaze"))
+                    if (Q.IsReady() && useQ && Target.IsValidTarget(Q.Range))
+                    {
+                        if (Target.HasBuff("brandablaze"))
+                        {
+                            Q.CastIfHitchanceEquals(Target, HC);
+                        }
+                        else
+                        {
+                            Q.CastIfHitchanceEquals(Target, HC);
+                        }
+                    }
+
+                    if (W.IsReady() && useW)
                         W.CastIfHitchanceEquals(Target, HC);
                 }
                 else
                 {
                     if (W.IsReady() && useW)
                         W.CastIfHitchanceEquals(Target, HC);
-                    if (Q.IsReady() && useQ && Target.HasBuff("brandablaze"))
-                        Q.CastIfHitchanceEquals(Target, HC);
+                    if (Q.IsReady() && useQ && Target.IsValidTarget(Q.Range))
+                    {
+                        if (Target.HasBuff("brandablaze"))
+                        {
+                            Q.CastIfHitchanceEquals(Target, HC);
+                        }
+                        else
+                        {
+                            Q.CastIfHitchanceEquals(Target, HC);
+                        }
+                    }
                     if (E.IsReady() && useE)
                         E.Cast(Target);
                 }
@@ -264,7 +314,7 @@ namespace Kimbaeng_Brand
             }
         }
 
-        static void LastHit() //Hestia lasthit 
+        static void LastHit()
         {
             var useQ = _Menu.Item("useLHQ").GetValue<bool>();
 
@@ -279,7 +329,7 @@ namespace Kimbaeng_Brand
             {
                 foreach (var minion in minionCount)
                 {
-                    if (Player.Distance(minion) <= Player.AttackRange)
+                    if (Player.Distance(minion) < Player.AttackRange)
                     {
                         return;
                     }
@@ -292,10 +342,20 @@ namespace Kimbaeng_Brand
                 }
             }
         }
-        public static void debug(string msg)
+        static void OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
-                Console.WriteLine(msg);
+            if (gapcloser.Sender.IsAlly) return;
+
+            if (!_Menu.Item("gapclose").GetValue<bool>())
+            return;
+
+            if (E.IsReady() && gapcloser.Sender.IsValidTarget(E.Range))
+                E.CastOnUnit(gapcloser.Sender);
+            if (Q.IsReady() && gapcloser.Sender.IsValidTarget(Q.Range) && gapcloser.Sender.HasBuff("brandablaze"))
+                Q.CastIfHitchanceEquals(gapcloser.Sender, HitChance.High);
+
         }
+
         static void DrawHPBarDamage()
         {
             const int XOffset = 10;
