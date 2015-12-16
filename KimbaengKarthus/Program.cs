@@ -112,8 +112,8 @@ namespace Kimbaeng_KarThus
             Drawing.OnDraw += Drawing_Ondraw;
             Game.OnUpdate += Game_OnUpdate;
 
-            Game.PrintChat("<font color=\"#FF0000\">Kimbaeng Karthus</font> Loaded");
-
+            Game.PrintChat("Kimbaeng<font color=\"#030066\">Karthus</font> Loaded");
+            Game.PrintChat("If You like this Assembly plz <font color=\"#1DDB16\">Upvote</font> XD ");
         }
 
         private static void Game_OnUpdate(EventArgs args)
@@ -393,11 +393,11 @@ namespace Kimbaeng_KarThus
 
         private static void FarmCast(Obj_AI_Base minion) //Trus Logic
         {
-            //Console.WriteLine("Starting farm check");
+            Console.WriteLine("Starting farm check");
             var position = FindHitPosition(Prediction.GetPrediction(minion, 250f));
             if (!(position.X == 0 && position.Y == 0 && position.Z == 0))
             {
-                // Console.WriteLine("Cast Q: " + position.X + " : " + position.Y + " : " + position.Z);
+                 Console.WriteLine("Cast Q: " + position.X + " : " + position.Y + " : " + position.Z);
                 Q.Cast(position);
             }
         }
