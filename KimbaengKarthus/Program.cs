@@ -76,7 +76,7 @@ namespace Kimbaeng_KarThus
             var HitchanceMenu = _menu.AddSubMenu(new Menu("Hitchance", "Hitchance"));
             HitchanceMenu.AddItem(
                 new MenuItem("Hitchance", "Hitchance").SetValue(
-                    new StringList(new[] { "Low", "Medium", "High", "VeryHigh", "Impossible" }, 4)));
+                    new StringList(new[] { "Low", "Medium", "High", "VeryHigh", "Impossible" }, 3)));
 
             var comboMenu = _menu.AddSubMenu(new Menu("combo", "Combo"));
             comboMenu.AddItem(new MenuItem("useQ", "Use Q").SetValue(true));
@@ -101,7 +101,7 @@ namespace Kimbaeng_KarThus
             ultMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
             ultMenu.AddItem(new MenuItem("NotifyPing", "Notify Ult Ping").SetValue(true));
 
-            MiscMenu.AddItem(new MenuItem("AutoQ", "AutoQ Immobile Enemy").SetValue(true));
+            MiscMenu.AddItem(new MenuItem("AutoQ", "AutoQ Immobile, Dashing Enemy").SetValue(true));
             MiscMenu.AddItem(new MenuItem("estate", "Auto E if No Target").SetValue(true));
 
             var DrawMenu = _menu.AddSubMenu(new Menu("Draw", "drawing"));
@@ -137,7 +137,6 @@ namespace Kimbaeng_KarThus
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
             {
                 _orbwalker.SetAttack(_menu.Item("comboAA").GetValue<bool>() || ObjectManager.Player.Mana < 100);
-                    //if no mana, allow auto attacks!
                 Combo();
             }
 
@@ -259,7 +258,7 @@ namespace Kimbaeng_KarThus
         }
 
 
-        private static void Farm() //Trus Logic
+        private static void Farm()
         {
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
 
@@ -290,18 +289,13 @@ namespace Kimbaeng_KarThus
 
                 var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,
                 MinionTeam.NotAlly);
-                minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
-
-
-                //minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
-
+                minions.RemoveAll(x => x.MaxHealth <= 5);
                 if (minions.Count > 3)
                 {
                     foreach (var minion in
                         minions.Where(
                             x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
-                                 //FirstDamage = multitarget hit, differentiate! (check radius around mob predicted pos)
-                                 HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
+                            HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
                     {
                         Q.Cast(minion);
                     }
@@ -335,7 +329,7 @@ namespace Kimbaeng_KarThus
                     E.Range,
                     MinionTypes.All,
                     MinionTeam.NotAlly);
-                minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
+                minions.RemoveAll(x => x.MaxHealth <= 5);
 
                 jungleMobs = minions.Any(x => x.Team == GameObjectTeam.Neutral);
 
@@ -394,11 +388,9 @@ namespace Kimbaeng_KarThus
 
         private static void FarmCast(Obj_AI_Base minion)
         {
-            Console.WriteLine("Starting farm check");
             var position = FindHitPosition(Prediction.GetPrediction(minion, 250f));
             if (!(position.X == 0 && position.Y == 0 && position.Z == 0))
             {
-                 Console.WriteLine("Cast Q: " + position.X + " : " + position.Y + " : " + position.Z);
                 Q.Cast(position);
             }
         }
@@ -433,9 +425,18 @@ namespace Kimbaeng_KarThus
 
         private static void PassiveForm()
         {
-            if (IsInPassiveForm())
+            if (Player.IsZombie)
             {
-                return;
+                var Target = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
+
+                if (Target != null)
+                {
+                    Combo();
+                }
+                else
+                {
+                    LaneClear();
+                }
             }
 
         }
