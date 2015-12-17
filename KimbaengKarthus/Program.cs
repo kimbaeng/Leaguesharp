@@ -8,6 +8,7 @@ using SharpDX;
 
 namespace Kimbaeng_KarThus
 {
+    using System.Diagnostics.Eventing.Reader;
     using System.Runtime.Remoting.Messaging;
 
     internal class Program
@@ -141,12 +142,11 @@ namespace Kimbaeng_KarThus
             }
 
 
-            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed
-                || _menu.Item("autoqh").GetValue<bool>()
-                && _menu.Item("harassmana").GetValue<Slider>().Value < ObjectManager.Player.ManaPercent)
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed || _menu.Item("autoqh").GetValue<bool>())
             {
                 _orbwalker.SetAttack(_menu.Item("harassAA").GetValue<bool>());
                 Harass();
+                LastHit();
             }
 
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
@@ -155,13 +155,9 @@ namespace Kimbaeng_KarThus
             }
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
             {
-                _orbwalker.SetAttack(false);
                 LastHit();
             }
-            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.None)
-            {
                 RegulateEState();
-            }
         }
 
         private static void Drawing_Ondraw(EventArgs args)
@@ -212,7 +208,7 @@ namespace Kimbaeng_KarThus
                         Drawing.WorldToScreen(Player.Position)[0] - 30,
                         Drawing.WorldToScreen(Player.Position)[1] + 20,
                         System.Drawing.Color.Gold,
-                        "Ult can kill: " + hero.ChampionName);
+                        "Can Kill : " + hero.ChampionName);
                 }
             }
         }
@@ -237,9 +233,8 @@ namespace Kimbaeng_KarThus
         private static void AutoQ()
         {
             if (!Q.IsReady())
-            {
                 return;
-            }
+            var HC = HitChance.High;
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
             {
                 if (enemy.IsValidTarget(Q.Range))
@@ -248,7 +243,15 @@ namespace Kimbaeng_KarThus
                     var pred = Q.GetPrediction(enemy);
                     if (pred.Hitchance == HitChance.Immobile)
                     {
-                        Q.Cast(enemy);
+                        HC = HitChance.Immobile;
+                    }
+                    if (pred.Hitchance == HitChance.Dashing)
+                    {
+                        HC = HitChance.Dashing;
+                    }
+
+                    {
+                        Q.CastIfHitchanceEquals(enemy,HC);
                     }
                 }
             }
@@ -277,34 +280,28 @@ namespace Kimbaeng_KarThus
 
         private static void LastHit()
         {
-            var useQ = _menu.Item("useqlasthit").GetValue<bool>();
+            if (!_menu.Item("useqlasthit").GetValue<bool>()) return;
 
-            if (!Q.IsReady() || !Orbwalking.CanMove(40) && !useQ)
+            if (!Orbwalking.CanMove(40))
                 return;
-            {
-            var minions = MinionManager.GetMinions(
-                    ObjectManager.Player.ServerPosition,
-                    Q.Range,
-                    MinionTypes.All,
-                    MinionTeam.NotAlly);
-                var eminions = MinionManager.GetMinions(
-                    ObjectManager.Player.ServerPosition,
-                    E.Range,
-                    MinionTypes.All,
-                    MinionTeam.NotAlly);
-                minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
-                if (eminions.Count == 0)
-                {
-                    RegulateEState();
-                }
-                if (minions.Count >= 3)
-                {
 
+            var eminions = MinionManager.GetMinions(Player.ServerPosition,E.Range,MinionTypes.All,MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+            {
+
+                var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,
+                MinionTeam.NotAlly);
+                minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
+
+
+                //minions.RemoveAll(x => x.MaxHealth <= 5); //filter wards the ghetto method lel
+
+                if (minions.Count > 3)
+                {
                     foreach (var minion in
                         minions.Where(
                             x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
                                  //FirstDamage = multitarget hit, differentiate! (check radius around mob predicted pos)
-                                 HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 800))))
+                                 HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
                     {
                         Q.Cast(minion);
                     }
@@ -313,6 +310,10 @@ namespace Kimbaeng_KarThus
                 {
                     Farm();
                 }
+            }
+            if (eminions.Count == 0)
+            {
+                RegulateEState();
             }
         }
 
@@ -356,7 +357,7 @@ namespace Kimbaeng_KarThus
             }
         }
 
-        public static Vector3 FindHitPosition(PredictionOutput minion) //Trus Logic
+        public static Vector3 FindHitPosition(PredictionOutput minion)
         {
             int multihit = 1;
             for (int i = -100; i < 100; i = i + 10)
@@ -377,7 +378,7 @@ namespace Kimbaeng_KarThus
             return new Vector3(0, 0, 0);
         }
 
-        private static int CheckMultiHit(Vector3 minion) //Trus Logic
+        private static int CheckMultiHit(Vector3 minion)
         {
             var count = 0;
             var allMinions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
@@ -391,7 +392,7 @@ namespace Kimbaeng_KarThus
             return count;
         }
 
-        private static void FarmCast(Obj_AI_Base minion) //Trus Logic
+        private static void FarmCast(Obj_AI_Base minion)
         {
             Console.WriteLine("Starting farm check");
             var position = FindHitPosition(Prediction.GetPrediction(minion, 250f));
