@@ -8,8 +8,6 @@ using SharpDX;
 
 namespace Kimbaeng_KarThus
 {
-    using System.Diagnostics.Eventing.Reader;
-    using System.Runtime.Remoting.Messaging;
 
     internal class Program
     {

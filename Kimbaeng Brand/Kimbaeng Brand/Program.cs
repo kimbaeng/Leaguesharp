@@ -10,7 +10,7 @@ using SharpDX;
 namespace Kimbaeng_Brand
 {
 
-    internal class Program
+     class Program
     {
         public static Menu _Menu;
 
@@ -106,28 +106,28 @@ namespace Kimbaeng_Brand
                 return;
             }
 
-                        if (_Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
-                        {
-                            Combo();
-                        }
-            
-                        if (_Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed
-                            && (Player.ManaPercent > _Menu.Item("ManaManagerH").GetValue<Slider>().Value))
-                        {
-                            Harass();
-                            LastHit();
-                        }
-            
-                        if (_Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear
-                            && (Player.ManaPercent > _Menu.Item("ManaManagerL").GetValue<Slider>().Value))
-                        {
-                            LaneClear();
-                        }
-            
-                        if (_Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
-                        {
-                            LastHit();
-                        }
+            if (_Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+            {
+                Combo();
+            }
+
+            if (_Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed
+                && (Player.ManaPercent > _Menu.Item("ManaManagerH").GetValue<Slider>().Value))
+            {
+                Harass();
+                LastHit();
+            }
+
+            if (_Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear
+                && (Player.ManaPercent > _Menu.Item("ManaManagerL").GetValue<Slider>().Value))
+            {
+                LaneClear();
+            }
+
+            if (_Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+            {
+                LastHit();
+            }
         }
 
         static void Combo()
@@ -410,25 +410,25 @@ namespace Kimbaeng_Brand
 
             if (qValue.Active)
             {
-                if (Q.Instance.Level == 0) return;
+                if (Q.Instance.Level != 0)
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, Q.Range, qValue.Color);
             }
 
             if (wValue.Active)
             {
-                if (W.Instance.Level == 0) return;
+                if (W.Instance.Level != 0)
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, W.Range, wValue.Color);
             }
 
             if (eValue.Active)
             {
-                if (E.Instance.Level == 0) return;
+                if (E.Instance.Level != 0)
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, E.Range, eValue.Color);
             }
 
             if (rValue.Active)
             {
-                if (R.Instance.Level == 0) return;
+                if (R.Instance.Level != 0)
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, E.Range, eValue.Color);
             }
             //if (_Menu.Item("drawdmg").GetValue<bool>())
