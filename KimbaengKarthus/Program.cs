@@ -99,6 +99,7 @@ namespace Kimbaeng_KarThus
             ultMenu.AddItem(new MenuItem("NotifyUlt", "Notify Ult Text").SetValue(true));
             ultMenu.AddItem(new MenuItem("NotifyPing", "Notify Ult Ping").SetValue(true));
 
+            MiscMenu.AddItem(new MenuItem("AutoQ", "AutoQ Immobile, Dashing Enemy").SetValue(true));
             MiscMenu.AddItem(new MenuItem("estate", "Auto E if No Target").SetValue(true));
 
             var DrawMenu = _menu.AddSubMenu(new Menu("Draw", "drawing"));
@@ -126,10 +127,11 @@ namespace Kimbaeng_KarThus
                 NotifyPing();
             }
 
-            if (_menu.Item("autoqh").GetValue<bool>())
+            if (_menu.Item("AutoQ").GetValue<bool>())
             {
-                Harass();
+                AutoQ();
             }
+
             if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
             {
                 _orbwalker.SetAttack(_menu.Item("comboAA").GetValue<bool>() || ObjectManager.Player.Mana < 100);
@@ -137,7 +139,7 @@ namespace Kimbaeng_KarThus
             }
 
 
-            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed || _menu.Item("autoqh").GetValue<bool>())
             {
                 _orbwalker.SetAttack(_menu.Item("harassAA").GetValue<bool>());
                 Harass();
@@ -168,19 +170,19 @@ namespace Kimbaeng_KarThus
 
             if (qValue.Active)
             {
-                if (Q.Instance.Level != 0)
+                if (Q.Instance.Level == 0) return;
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, Q.Range, qValue.Color);
             }
 
             if (wValue.Active)
             {
-                if (W.Instance.Level != 0)
+                if (W.Instance.Level == 0) return;
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, W.Range, wValue.Color);
             }
 
             if (eValue.Active)
             {
-                if (E.Instance.Level != 0)
+                if (E.Instance.Level == 0) return;
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, E.Range, eValue.Color);
             }
 
@@ -223,6 +225,34 @@ namespace Kimbaeng_KarThus
                 {
                     Ping(enemy.Position.To2D());
                 }
+        }
+
+        private static void AutoQ()
+        {
+            if (!Q.IsReady())
+                return;
+            var HC = HitChance.High;
+            foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
+            {
+                if (enemy.IsValidTarget(Q.Range))
+                {
+
+                    var pred = Q.GetPrediction(enemy);
+                    if (pred.Hitchance == HitChance.Immobile)
+                    {
+                        HC = HitChance.Immobile;
+                    }
+                    if (pred.Hitchance == HitChance.Dashing)
+                    {
+                        HC = HitChance.Dashing;
+                    }
+
+                    {
+                        Q.CastIfHitchanceEquals(enemy,HC);
+                    }
+                }
+            }
+
         }
 
 
