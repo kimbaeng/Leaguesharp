@@ -41,7 +41,7 @@ namespace Kimbaeng_Shen
             W = new Spell(SpellSlot.W);
             E = new Spell(SpellSlot.E, 600);
             R = new Spell(SpellSlot.R);
-            EFlash = new Spell(SpellSlot.E, 1000);
+            EFlash = new Spell(SpellSlot.E, 990);
             EFlash.SetSkillshot(
                 E.Instance.SData.SpellCastTime, E.Instance.SData.LineWidth, E.Speed, false, SkillshotType.SkillshotLine);
 
@@ -85,7 +85,7 @@ namespace Kimbaeng_Shen
             foreach (var hero in HeroManager.Allies)
             {
                 UltMenu.AddItem(new MenuItem("ultnotifiy" + hero.ChampionName, "Ult Notify Ping to" + hero.ChampionName).SetValue(true));
-                UltMenu.AddItem(new MenuItem("HP" + hero.ChampionName, "HP %").SetValue(new Slider(20, 0, 100)));
+                UltMenu.AddItem(new MenuItem("HP" + hero.ChampionName, "HP %").SetValue(new Slider(30, 0, 100)));
             }
 
             MiscMenu.AddItem(new MenuItem("autoW", "Auto Sheid W").SetValue(true));
@@ -133,20 +133,26 @@ namespace Kimbaeng_Shen
                 FlashECombo();
             }
 
+            Auto();
+
         }
 
         public static void OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (!W.IsReady()) return;
-
-            if (_Menu.Item("autow").GetValue<bool>())
+            if (_Menu.Item("autoW").GetValue<bool>())
             {
-                if (W.IsReady() && sender.IsEnemy && !sender.IsMe && (sender is Obj_AI_Hero || sender is Obj_AI_Turret)
-                         && args.Target.IsMe)
+                if (!sender.IsMe && sender.IsEnemy && ObjectManager.Player.Health < 200 && W.IsReady() && args.Target.IsMe) 
+                {
+                    W.Cast();
+                }
+
+                else if (!sender.IsMe && sender.IsEnemy && (sender is Obj_AI_Hero || sender is Obj_AI_Turret) && args.Target.IsMe && W.IsReady())
                 {
                     W.Cast();
                 }
             }
+
+            return;
         }
 
 
@@ -191,7 +197,7 @@ namespace Kimbaeng_Shen
                 Q.Cast(Target);
             }
 
-            if (E.IsReady() && useE && Target.IsValidTarget(E.Range) && ObjectManager.Player.HasBuff("shenwayoftheninjaaura"))
+            if (E.IsReady() && useE && Target.IsValidTarget(E.Range) && ObjectManager.Player.HasBuff("shenwayoftheninjaaura") && W.IsReady())
             {
                 E.Cast(Target);
             }
@@ -228,7 +234,7 @@ namespace Kimbaeng_Shen
         {
             var useQ = _Menu.Item("useLHQ").GetValue<bool>();
 
-            if (!Q.IsReady())
+            if (!Q.IsReady() || !Orbwalking.CanMove(100))
             {
                 return;
             }
@@ -268,6 +274,7 @@ namespace Kimbaeng_Shen
 
             if (FTarget != null && STarget != null)
             {
+                EFTarget = null;
                 if (E.IsReady() && FTarget.IsValidTarget(E.Range) && FTarget.Distance(STarget) < 400)
                 {
                     E.Cast(FTarget.Position);
@@ -299,43 +306,41 @@ namespace Kimbaeng_Shen
         {
             if (ObjectManager.Player.IsDead) return;
 
-            var AutoHQ = _Menu.Item("autoHQ").GetValue<bool>();
-            var KeepE = _Menu.Item("KeepE").GetValue<bool>();
-            var Target = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
+            //var AutoHQ = _Menu.Item("autoHQ").GetValue<bool>();
+            //var KeepE = _Menu.Item("KeepE").GetValue<bool>();
+            //var Target = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
 
-            if (AutoHQ && Target != null)
-            {
-                if (KeepE)
-                {
-                    if (ObjectManager.Player.Mana < E.ManaCost)
-                    {
-                        Q.Cast(Target);
-                    }
-                }
-                else
-                    {
-                        Q.Cast(Target);
-                    }
-            }
+            //if (AutoHQ && Target != null)
+            //{
+            //    if (KeepE)
+            //    {
+            //        if (ObjectManager.Player.Mana < E.ManaCost)
+            //        {
+            //            Q.Cast(Target);
+            //        }
+            //    }
+            //    else
+            //        {
+            //            Q.Cast(Target);
+            //        }
+            //}
 
-            if (R.Instance.Level == 0 && R.IsReady())
-            {
-                return;
-            }
-            else
-            {
+                 if (R.Level != 0 && R.IsReady() )
                 foreach (var hero in HeroManager.Allies.Where(x => x.IsValidTarget(R.Range,false) && _Menu.Item("ultnotifiy" + x.ChampionName).GetValue<bool>()))
                 {
                     if (hero.Health * 100 / hero.MaxHealth
                         <= _Menu.Item("HP" + hero.ChampionName).GetValue<Slider>().Value
-                        && hero.CountEnemiesInRange(900) >= 1) Ping(hero.Position.To2D());
-                    Drawing.DrawText(
-                        Drawing.WorldToScreen(ObjectManager.Player.Position)[0] - 30,
-                        Drawing.WorldToScreen(ObjectManager.Player.Position)[1] + 20,
-                        System.Drawing.Color.Gold,
-                         hero.ChampionName + " Need Help!");
+                        && hero.CountEnemiesInRange(900) >= 1)
+                    {
+                        Ping(hero.Position.To2D());
+                        Drawing.DrawText(
+                            Drawing.WorldToScreen(ObjectManager.Player.Position)[0] - 30,
+                            Drawing.WorldToScreen(ObjectManager.Player.Position)[1] + 20,
+                            System.Drawing.Color.Gold,
+                             hero + " Need Help!");
+                    }
+
                 }
-            }
 
         }
 
@@ -365,19 +370,19 @@ namespace Kimbaeng_Shen
         {
             var FTarget = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
             var STarget = TargetSelector.GetTarget(EFlash.Range, TargetSelector.DamageType.Magical, false, FTarget != null ? new[] { FTarget } : null);
-            var EFTarget = TargetSelector.SelectedTarget;
+            var EFTarget = TargetSelector.GetSelectedTarget();
 
             if (EFTarget != null)
             {
-                Render.Circle.DrawCircle(STarget.Position, 100, System.Drawing.Color.Lime);
+                Render.Circle.DrawCircle(EFTarget.Position, 100, System.Drawing.Color.Lime);
                 Drawing.DrawText(
-                    Drawing.WorldToScreen(STarget.Position)[0] - 30,
-                    Drawing.WorldToScreen(STarget.Position)[1] + 20,
+                    Drawing.WorldToScreen(EFTarget.Position)[0] - 30,
+                    Drawing.WorldToScreen(EFTarget.Position)[1] + 20,
                     System.Drawing.Color.Lime,
                     "EF Target");
             }
 
-            if (FTarget != null)
+            if (FTarget != null && EFTarget == null)
             {
                 Render.Circle.DrawCircle(FTarget.Position, 50, System.Drawing.Color.Red);
                 Drawing.DrawText(
@@ -387,7 +392,7 @@ namespace Kimbaeng_Shen
                    "First Target");
             }
 
-            if (STarget != null)
+            if (STarget != null && EFTarget == null)
             {
                 Render.Circle.DrawCircle(STarget.Position, 50, System.Drawing.Color.OrangeRed);
                 Drawing.DrawText(
