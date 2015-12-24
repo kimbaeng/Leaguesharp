@@ -89,7 +89,7 @@ namespace Kimbaeng_Shen
 
 
             var DrawMenu = _Menu.AddSubMenu(new Menu("Drawing", "drawing"));
-            DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(false));
+            DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(true));
             DrawMenu.AddItem(new MenuItem("drawQ", "DrawQ").SetValue(new Circle(true, System.Drawing.Color.Olive)));
             DrawMenu.AddItem(new MenuItem("drawE", "DrawE").SetValue(new Circle(true, System.Drawing.Color.Olive)));
             DrawMenu.AddItem(new MenuItem("drawEF", "DrawEFlash").SetValue(new Circle(true, System.Drawing.Color.Lime)));

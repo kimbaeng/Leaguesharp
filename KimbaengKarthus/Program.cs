@@ -102,7 +102,7 @@ namespace Kimbaeng_KarThus
             MiscMenu.AddItem(new MenuItem("estate", "Auto E if No Target").SetValue(true));
 
             var DrawMenu = _menu.AddSubMenu(new Menu("Draw", "drawing"));
-            DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(false));
+            DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(true));
             DrawMenu.AddItem(new MenuItem("drawQ", "DrawQ").SetValue(new Circle(true, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawW", "DrawW").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawE", "DrawE").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));

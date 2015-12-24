@@ -85,7 +85,7 @@ namespace Kimbaeng_Brand
             MiscMenu.AddItem(new MenuItem("gapclose", "Auto AntiGapcloser(E → Q)").SetValue(true));
 
             var DrawMenu = _Menu.AddSubMenu(new Menu("Drawing", "drawing"));
-            DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(false));
+            DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(true));
             DrawMenu.AddItem(new MenuItem("drawQ", "DrawQ").SetValue(new Circle(true, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawW", "DrawW").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawE", "DrawE").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
