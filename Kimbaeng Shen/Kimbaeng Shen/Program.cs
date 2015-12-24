@@ -68,9 +68,6 @@ namespace Kimbaeng_Shen
             var harassMenu = _Menu.AddSubMenu(new Menu("Harass", "Harass"));
             harassMenu.AddItem(new MenuItem("useHQ", "UseQ").SetValue(true));
             harassMenu.AddItem(new MenuItem("useHE", "UseE").SetValue(true));
-            harassMenu.AddItem(new MenuItem("autoHQ", "Auto Q Harass")
-                .SetValue(new KeyBind("G".ToCharArray()[0], KeyBindType.Toggle))).Permashow(true, "Shen Toggle Q Harass");
-            harassMenu.AddItem(new MenuItem("keepE", "Keep energy for E").SetValue(true));
 
             var laneMenu = _Menu.AddSubMenu(new Menu("Lane Clear", "laneclear"));
             laneMenu.AddItem(new MenuItem("useLQ", "Use Q").SetValue(true));
@@ -84,23 +81,23 @@ namespace Kimbaeng_Shen
 
             foreach (var hero in HeroManager.Allies)
             {
-                UltMenu.AddItem(new MenuItem("ultnotifiy" + hero.ChampionName, "Ult Notify Ping to" + hero.ChampionName).SetValue(true));
+                UltMenu.AddItem(new MenuItem("ultnotifiy" + hero.ChampionName, "Ult Notify Ping to " + hero.ChampionName).SetValue(true));
                 UltMenu.AddItem(new MenuItem("HP" + hero.ChampionName, "HP %").SetValue(new Slider(30, 0, 100)));
             }
 
-            MiscMenu.AddItem(new MenuItem("autoW", "Auto Sheid W").SetValue(true));
+            MiscMenu.AddItem(new MenuItem("autow", "Auto Sheid W").SetValue(true));
 
 
             var DrawMenu = _Menu.AddSubMenu(new Menu("Drawing", "drawing"));
             DrawMenu.AddItem(new MenuItem("noDraw", "Disable Drawing").SetValue(false));
             DrawMenu.AddItem(new MenuItem("drawQ", "DrawQ").SetValue(new Circle(true, System.Drawing.Color.Olive)));
             DrawMenu.AddItem(new MenuItem("drawE", "DrawE").SetValue(new Circle(true, System.Drawing.Color.Olive)));
-            DrawMenu.AddItem(new MenuItem("drawEF", "DrawEFlash").SetValue(new Circle(true, System.Drawing.Color.Olive)));
+            DrawMenu.AddItem(new MenuItem("drawEF", "DrawEFlash").SetValue(new Circle(true, System.Drawing.Color.Lime)));
             Game.OnUpdate += Game_onUpdate;
             Drawing.OnDraw += Drawing_Ondraw;
             Obj_AI_Base.OnProcessSpellCast += OnProcessSpellCast;
 
-            Game.PrintChat("<font color=\"#0000A5\">Kimbaeng Shen</font> Loaded ");
+            Game.PrintChat("<font color=\"#672FBB\">Kimbaeng Shen</font> Loaded ");
             Game.PrintChat("If You like this Assembly plz <font color=\"#41FF3A\">Upvote</font> XD ");
         }
 
@@ -139,19 +136,16 @@ namespace Kimbaeng_Shen
 
         public static void OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (_Menu.Item("autoW").GetValue<bool>())
-            {
-                if (!sender.IsMe && sender.IsEnemy && ObjectManager.Player.Health < 200 && W.IsReady() && args.Target.IsMe) 
-                {
-                    W.Cast();
-                }
+            if (W.Level == 0 && !W.IsReady()) return;
 
-                else if (!sender.IsMe && sender.IsEnemy && (sender is Obj_AI_Hero || sender is Obj_AI_Turret) && args.Target.IsMe && W.IsReady())
+            if (_Menu.Item("autow").GetValue<bool>())
+            {
+
+                if (W.IsReady() && !sender.IsMe && sender.IsEnemy && (sender is Obj_AI_Hero || sender is Obj_AI_Turret) && args.Target.IsMe)
                 {
                     W.Cast();
                 }
             }
-
             return;
         }
 
@@ -165,13 +159,13 @@ namespace Kimbaeng_Shen
             var useE = _Menu.Item("useCE").GetValue<bool>();
             var UseI = _Menu.Item("UseI").GetValue<bool>();
 
-            if (E.IsReady() && useE && Target.IsValidTarget(E.Range))
-            {
-                E.Cast(Target);
-            }
             if (Q.IsReady() && useQ && Target.IsValidTarget(Q.Range))
             {
                 Q.Cast(Target);
+            }
+            if (E.IsReady() && useE && Target.IsValidTarget(E.Range))
+            {
+                E.Cast(Target.Position);
             }
 
             if (IgniteSlot != SpellSlot.Unknown &&
@@ -199,7 +193,7 @@ namespace Kimbaeng_Shen
 
             if (E.IsReady() && useE && Target.IsValidTarget(E.Range) && ObjectManager.Player.HasBuff("shenwayoftheninjaaura") && W.IsReady())
             {
-                E.Cast(Target);
+                E.Cast(Target.Position);
             }
         }
 
@@ -268,14 +262,24 @@ namespace Kimbaeng_Shen
         {
             var FTarget = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
             var STarget = TargetSelector.GetTarget(EFlash.Range, TargetSelector.DamageType.Magical, false, FTarget != null ? new[] { FTarget } : null);
-            var EFTarget = TargetSelector.SelectedTarget;
+            var EFTarget = TargetSelector.GetSelectedTarget();
 
-
+            if (EFTarget != null)
+            {
+                if (E.IsReady() && FlashSlot != SpellSlot.Unknown
+                    && ObjectManager.Player.Spellbook.CanUseSpell(FlashSlot) == SpellState.Ready && EFTarget.IsValidTarget(EFlash.Range))
+                {
+                    E.Cast(EFTarget.Position);
+                }
+                if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 410)
+                {
+                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, EFTarget);
+                }
+            }
 
             if (FTarget != null && STarget != null)
             {
-                EFTarget = null;
-                if (E.IsReady() && FTarget.IsValidTarget(E.Range) && FTarget.Distance(STarget) < 400)
+                if (E.IsReady() && FTarget.IsValidTarget(E.Range) && FTarget.Distance(STarget) < 410)
                 {
                     E.Cast(FTarget.Position);
                 }
@@ -286,58 +290,27 @@ namespace Kimbaeng_Shen
                 }
             }
 
-            if (EFTarget != null)
-            {
-                if (E.IsReady() && FlashSlot != SpellSlot.Unknown
-                    && ObjectManager.Player.Spellbook.CanUseSpell(FlashSlot) == SpellState.Ready)
-                {
-                    E.Cast(EFTarget.Position);
-                }
-                if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 400)
-                {
-                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, EFTarget);
-                }
-            }
+            
 
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
         }
 
         static void Auto()
         {
-            if (ObjectManager.Player.IsDead) return;
-
-            //var AutoHQ = _Menu.Item("autoHQ").GetValue<bool>();
-            //var KeepE = _Menu.Item("KeepE").GetValue<bool>();
-            //var Target = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
-
-            //if (AutoHQ && Target != null)
-            //{
-            //    if (KeepE)
-            //    {
-            //        if (ObjectManager.Player.Mana < E.ManaCost)
-            //        {
-            //            Q.Cast(Target);
-            //        }
-            //    }
-            //    else
-            //        {
-            //            Q.Cast(Target);
-            //        }
-            //}
-
-                 if (R.Level != 0 && R.IsReady() )
+          
+            if (R.Level != 0 && R.IsReady())
                 foreach (var hero in HeroManager.Allies.Where(x => x.IsValidTarget(R.Range,false) && _Menu.Item("ultnotifiy" + x.ChampionName).GetValue<bool>()))
                 {
                     if (hero.Health * 100 / hero.MaxHealth
-                        <= _Menu.Item("HP" + hero.ChampionName).GetValue<Slider>().Value
-                        && hero.CountEnemiesInRange(900) >= 1)
+                        < _Menu.Item("HP" + hero.ChampionName).GetValue<Slider>().Value
+                        )
                     {
                         Ping(hero.Position.To2D());
                         Drawing.DrawText(
                             Drawing.WorldToScreen(ObjectManager.Player.Position)[0] - 30,
                             Drawing.WorldToScreen(ObjectManager.Player.Position)[1] + 20,
                             System.Drawing.Color.Gold,
-                             hero + " Need Help!");
+                             hero.ChampionName[0] + " Need Help!");
                     }
 
                 }
