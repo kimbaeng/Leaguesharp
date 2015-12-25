@@ -37,7 +37,7 @@ namespace Kimbaeng_Shen
         {
             if (ObjectManager.Player.ChampionName != "Shen") return;
 
-            Q = new Spell(SpellSlot.Q, 475f);
+            Q = new Spell(SpellSlot.Q, 465);
             W = new Spell(SpellSlot.W);
             E = new Spell(SpellSlot.E, 600);
             R = new Spell(SpellSlot.R);
@@ -282,7 +282,7 @@ namespace Kimbaeng_Shen
                 {
                     E.Cast(EFTarget.Position);
                 }
-                if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 420)
+                if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 410)
                 {
                     ObjectManager.Player.Spellbook.CastSpell(FlashSlot, EFTarget.Position);
                 }
@@ -290,15 +290,14 @@ namespace Kimbaeng_Shen
 
             if (FTarget != null && STarget != null)
             {
-                if (E.IsReady() && FTarget.IsValidTarget(E.Range) && FTarget.Distance(STarget) < 420)
+                if (E.IsReady() && FTarget.IsValidTarget(E.Range - 10) && FTarget.Distance(STarget.Position) < 410)
                 {
                     E.CastIfHitchanceEquals(FTarget,HitChance.High);
-
                 }
 
-                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing())
+                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(STarget.Position) < 410)
                 {
-                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget.Position);
+                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget);
                 }
             }
 
