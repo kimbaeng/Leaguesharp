@@ -78,6 +78,17 @@ namespace Kimbaeng_Shen
 
             var MiscMenu = _Menu.AddSubMenu(new Menu("Misc","misc"));
             var UltMenu = MiscMenu.AddSubMenu(new Menu("Ult Notification", "Ult"));
+            UltMenu.AddItem(new MenuItem("ultping", "Ult Ping").SetValue(true));
+            UltMenu.AddItem(new MenuItem("ulttext", "Ult Text").SetValue(true));
+            if (_Menu.Item("ultping").GetValue<bool>() || _Menu.Item("ulttext").GetValue<bool>())
+            {
+                foreach (var hero in HeroManager.Allies)
+                {
+                    UltMenu.AddItem(new MenuItem("ultnotifiy" + hero.ChampionName, "Ult Notify to " + hero.ChampionName).SetValue(true));
+                    UltMenu.AddItem(new MenuItem("HP" + hero.ChampionName, "HP %").SetValue(new Slider(30, 0, 100)));
+                }
+            }
+
 
             foreach (var hero in HeroManager.Allies)
             {
@@ -271,22 +282,23 @@ namespace Kimbaeng_Shen
                 {
                     E.Cast(EFTarget.Position);
                 }
-                if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 410)
+                if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 420)
                 {
-                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, EFTarget);
+                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, EFTarget.Position);
                 }
             }
 
             if (FTarget != null && STarget != null)
             {
-                if (E.IsReady() && FTarget.IsValidTarget(E.Range) && FTarget.Distance(STarget) < 410)
+                if (E.IsReady() && FTarget.IsValidTarget(E.Range) && FTarget.Distance(STarget) < 420)
                 {
-                    E.Cast(FTarget.Position);
+                    E.CastIfHitchanceEquals(FTarget,HitChance.High);
+
                 }
 
                 if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing())
                 {
-                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget);
+                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget.Position);
                 }
             }
 
@@ -297,20 +309,19 @@ namespace Kimbaeng_Shen
 
         static void Auto()
         {
-          
+            var B = Drawing.WorldToScreen(ObjectManager.Player.Position)[1] + 20;
             if (R.Level != 0 && R.IsReady())
                 foreach (var hero in HeroManager.Allies.Where(x => x.IsValidTarget(R.Range,false) && _Menu.Item("ultnotifiy" + x.ChampionName).GetValue<bool>()))
                 {
-                    if (hero.Health * 100 / hero.MaxHealth
-                        < _Menu.Item("HP" + hero.ChampionName).GetValue<Slider>().Value
-                        )
+
+                    if (hero.Health * 100 / hero.MaxHealth < _Menu.Item("HP" + hero.ChampionName).GetValue<Slider>().Value && !hero.IsMe)
                     {
+                        if (_Menu.Item("ultping").GetValue<bool>())
                         Ping(hero.Position.To2D());
-                        Drawing.DrawText(
-                            Drawing.WorldToScreen(ObjectManager.Player.Position)[0] - 30,
-                            Drawing.WorldToScreen(ObjectManager.Player.Position)[1] + 20,
-                            System.Drawing.Color.Gold,
-                             hero.ChampionName[0] + " Need Help!");
+                        if (_Menu.Item("ulttext").GetValue<bool>())
+                        Drawing.DrawText(Drawing.WorldToScreen(ObjectManager.Player.Position)[0] - 30
+                            ,B,System.Drawing.Color.Gold,hero.ChampionName + " Need Help!");
+                        B = B + 20;
                     }
 
                 }
