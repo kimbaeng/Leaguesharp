@@ -274,8 +274,7 @@ namespace Kimbaeng_Shen
             var FTarget = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
             var STarget = TargetSelector.GetTarget(EFlash.Range, TargetSelector.DamageType.Magical, false, FTarget != null ? new[] { FTarget } : null);
             var EFTarget = TargetSelector.GetSelectedTarget();
-            var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
-
+            
             if (EFTarget != null)
             {
                 if (E.IsReady() && FlashSlot != SpellSlot.Unknown
@@ -293,6 +292,7 @@ namespace Kimbaeng_Shen
             {
                 if (E.IsReady() && FTarget.IsValidTarget(E.Range - 10) && FTarget.Distance(STarget.Position) < 410)
                 {
+                    var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
                     E.Cast(Endpos);
                 }
 
