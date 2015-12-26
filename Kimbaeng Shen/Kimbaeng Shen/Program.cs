@@ -280,8 +280,8 @@ namespace Kimbaeng_Shen
 
                 if (FTarget.IsValidTarget(E.Range-10) && STarget.IsValidTarget(EFlash.Range))
                 {
-                    //var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
-                    E.Cast(FTarget);
+                    var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
+                    E.Cast(Endpos);
                 }
 
 
