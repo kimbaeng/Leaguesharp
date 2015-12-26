@@ -284,7 +284,7 @@ namespace Kimbaeng_Shen
                 }
                 if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 410)
                 {
-                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, EFTarget.Position);
+                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, EFTarget);
                 }
             }
 
@@ -292,12 +292,12 @@ namespace Kimbaeng_Shen
             {
                 if (FTarget.IsValidTarget(E.Range - 10) && STarget.IsValidTarget(EFlash.Range))
                 {
-                    var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
-                    E.Cast(Endpos);
+                    //var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
+                    E.CastIfHitchanceEquals(FTarget,HitChance.High);
                 }
 
 
-                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing())
+                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 410)
                 {
                     ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget.Position);
                 }
