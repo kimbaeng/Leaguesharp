@@ -293,7 +293,7 @@ namespace Kimbaeng_Shen
                     var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
                     E.Cast(Endpos);
 
-                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(STarget.Position) < 410)
+                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing())
                 {
                     ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget);
                 }
