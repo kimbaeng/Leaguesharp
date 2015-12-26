@@ -297,7 +297,7 @@ namespace Kimbaeng_Shen
                 }
 
 
-                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 450)
+                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing())
                 {
                     ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget.Position);
                 }
