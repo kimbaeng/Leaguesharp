@@ -290,7 +290,7 @@ namespace Kimbaeng_Shen
 
             if (FTarget != null && STarget != null)
             {
-                if (E.IsReady() && FTarget.IsValidTarget(E.Range - 10) && FTarget.Distance(STarget.Position) < 410)
+                if (E.IsReady() && FTarget.IsValidTarget(E.Range) && FTarget.Distance(STarget.Position) < 410)
                 {
                     var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
                     E.Cast(Endpos);
