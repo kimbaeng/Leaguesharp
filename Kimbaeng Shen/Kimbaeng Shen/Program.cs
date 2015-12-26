@@ -277,20 +277,30 @@ namespace Kimbaeng_Shen
 
             if (FTarget != null && STarget != null)
             {
-
-                if (FTarget.IsValidTarget(E.Range) && STarget.IsValidTarget(EFlash.Range))
-                {
-                    var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range +10);
-                    E.Cast(Endpos);
-                }
-
+                var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
+                E.Cast(Endpos);
 
                 if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing())
                 {
                     ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget.Position);
                 }
- 
             }
+            //if (FTarget != null && STarget != null)
+            //{
+
+            //    if (FTarget.IsValidTarget(E.Range) && STarget.IsValidTarget(EFlash.Range))
+            //    {
+            //        var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
+            //        E.Cast(Endpos);
+            //    }
+
+
+            //    if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing())
+            //    {
+            //        ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget.Position);
+            //    }
+ 
+            //}
 
             if (EFTarget != null)
             {
