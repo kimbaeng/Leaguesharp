@@ -285,10 +285,9 @@ namespace Kimbaeng_Shen
                 }
 
 
-                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(STarget) < 420)
-                {
+                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing())
                     ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget);
-                }
+ 
             }
 
             if (EFTarget != null)
