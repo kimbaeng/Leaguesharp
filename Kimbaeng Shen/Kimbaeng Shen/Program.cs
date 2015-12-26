@@ -277,7 +277,7 @@ namespace Kimbaeng_Shen
 
             if (FTarget != null && STarget != null)
             {
-                if (FTarget.IsValidTarget(E.Range) && STarget.IsValidTarget(EFlash.Range))
+                if (FTarget.IsValidTarget(E.Range - 10) && STarget.IsValidTarget(EFlash.Range))
                 {
                     //var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
                     E.Cast(FTarget);
@@ -286,7 +286,7 @@ namespace Kimbaeng_Shen
 
                 if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 410)
                 {
-                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget);
+                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget.Position);
                 }
             }
 
