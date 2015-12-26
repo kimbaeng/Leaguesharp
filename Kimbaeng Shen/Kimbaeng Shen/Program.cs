@@ -288,12 +288,16 @@ namespace Kimbaeng_Shen
                 }
             }
 
-            if (FTarget != null && STarget != null&& E.IsReady() && FTarget.IsValidTarget(E.Range - 10) && FTarget.Distance(STarget.Position) < 410)
+            if (FTarget != null && STarget != null&& E.IsReady())
             {
+                if (FTarget.IsValidTarget(E.Range - 10) && STarget.IsValidTarget(EFlash.Range))
+                {
                     var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
                     E.Cast(Endpos);
+                }
 
-                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing())
+
+                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 410)
                 {
                     ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget);
                 }
