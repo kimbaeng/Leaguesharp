@@ -278,16 +278,16 @@ namespace Kimbaeng_Shen
             if (FTarget != null && STarget != null)
             {
 
-                if (FTarget.IsValidTarget(E.Range) && STarget.IsValidTarget(EFlash.Range))
+                if (FTarget.IsValidTarget(E.Range-10) && STarget.IsValidTarget(EFlash.Range))
                 {
                     //var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, E.Range);
                     E.Cast(FTarget);
                 }
 
 
-                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(STarget.Position) < 410)
+                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(STarget) < 420)
                 {
-                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget.Position);
+                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget);
                 }
             }
 
