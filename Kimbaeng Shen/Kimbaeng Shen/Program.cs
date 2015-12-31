@@ -64,7 +64,7 @@ namespace Kimbaeng_Shen
             comboMenu.AddItem(new MenuItem("useCE", "Use E").SetValue(true));
             comboMenu.AddItem(new MenuItem("UseI", "Use Ignite").SetValue(true));
             comboMenu.AddItem(new MenuItem("useEF", "Use E+Flash"))
-                .SetValue(new KeyBind("T".ToCharArray()[0], KeyBindType.Press));
+                .SetValue(new KeyBind('T', KeyBindType.Press));
     //        comboMenu.AddItem(new MenuItem("useR", "Use R Need Help Ally"))
     //.SetValue(new KeyBind("R".ToCharArray()[0], KeyBindType.Press));
 
@@ -318,7 +318,7 @@ namespace Kimbaeng_Shen
 
             static void Auto()
         {
-            var B = Drawing.WorldToScreen(ObjectManager.Player.Position)[1] + 20;
+            var pos = Drawing.WorldToScreen(ObjectManager.Player.Position)[1] + 20;
             if (R.Level != 0 && R.IsReady())
                 foreach (var hero in HeroManager.Allies.Where(x => x.IsValidTarget(R.Range,false) && _Menu.Item("ultnotifiy" + x.ChampionName).GetValue<bool>()))
                 {
@@ -329,8 +329,8 @@ namespace Kimbaeng_Shen
                         Ping(hero.Position.To2D());
                         if (_Menu.Item("ulttext").GetValue<bool>())
                         Drawing.DrawText(Drawing.WorldToScreen(ObjectManager.Player.Position)[0] - 30
-                            ,B,System.Drawing.Color.Gold,hero.ChampionName + " Need Help!");
-                        B = B + 20;
+                            ,pos,System.Drawing.Color.Gold,hero.ChampionName + " Need Help!");
+                        pos = pos + 20;
                     }
 
                 }
