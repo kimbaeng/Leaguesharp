@@ -10,7 +10,6 @@ using SharpDX;
 
 namespace Kimbaeng_Shen
 {
-    using System.Data.SqlTypes;
 
     class Program
     {
@@ -83,18 +82,12 @@ namespace Kimbaeng_Shen
             var UltMenu = MiscMenu.AddSubMenu(new Menu("Ult Notification", "Ult"));
             UltMenu.AddItem(new MenuItem("ultping", "Ult Ping").SetValue(true));
             UltMenu.AddItem(new MenuItem("ulttext", "Ult Text").SetValue(true));
-
             foreach (var hero in HeroManager.Allies)
             {
-                
-                if (hero.ChampionName != "Shen")
-                {
                     UltMenu.AddItem(new MenuItem("ultnotifiy" + hero.ChampionName, "Ult Notify to " + hero.ChampionName).SetValue(true));
-                    UltMenu.AddItem(new MenuItem("HP" + hero.ChampionName, "HP %").SetValue(new Slider(90, 0, 100)));
+                    UltMenu.AddItem(new MenuItem("HP" + hero.ChampionName, "HP %").SetValue(new Slider(30, 0, 100)));
                     UltMenu.AddItem(new MenuItem("priority" + hero.ChampionName, "Set Ult priority").SetValue(new Slider(4, 1, 5)));
-                   
-                }
-                    
+                    Console.WriteLine(hero.ChampionName);   
             }
 
             MiscMenu.AddItem(new MenuItem("autow", "Auto Sheid W").SetValue(true));
@@ -159,10 +152,12 @@ namespace Kimbaeng_Shen
             if (_Menu.Item("autow").GetValue<bool>())
             {
 
-                if (W.IsReady() && !sender.IsMe && sender.IsEnemy && (sender is Obj_AI_Hero || sender is Obj_AI_Turret) && args.Target.IsMe)
+                if (W.IsReady() && !sender.IsMe && sender.IsEnemy && (sender is Obj_AI_Hero || sender is Obj_AI_Turret)
+                    && args.Target.IsMe)
                 {
                     W.Cast();
                 }
+                    return;
             }
             return;
         }
@@ -331,26 +326,27 @@ namespace Kimbaeng_Shen
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
         }
 
-            static void Auto()
+        static void Auto()
         {
             var pos = Drawing.WorldToScreen(ObjectManager.Player.Position)[1] + 20;
             if (R.Level != 0 && R.IsReady())
-                foreach (var hero in HeroManager.Allies.Where(x => x.IsValidTarget(R.Range,false) && _Menu.Item("ultnotifiy" + x.ChampionName).GetValue<bool>()))
+                foreach (var hero in HeroManager.Allies.Where(x => x.IsValidTarget(R.Range, false) && _Menu.Item("ultnotifiy" + x.ChampionName).GetValue<bool>()))
                 {
 
                     if (hero.Health * 100 / hero.MaxHealth < _Menu.Item("HP" + hero.ChampionName).GetValue<Slider>().Value && !hero.IsMe)
                     {
                         if (_Menu.Item("ultping").GetValue<bool>())
-                        Ping(hero.Position.To2D());
+                            Ping(hero.Position.To2D());
                         if (_Menu.Item("ulttext").GetValue<bool>())
-                        Drawing.DrawText(Drawing.WorldToScreen(ObjectManager.Player.Position)[0] - 30
-                            ,pos,System.Drawing.Color.Gold,hero.ChampionName + " Need Help!");
+                            Drawing.DrawText(Drawing.WorldToScreen(ObjectManager.Player.Position)[0] - 30
+                                , pos, System.Drawing.Color.Gold, hero.ChampionName + " Need Help!");
                         pos = pos + 20;
                     }
 
                 }
 
         }
+
 
         private static void Ping(Vector2 position)
         {
