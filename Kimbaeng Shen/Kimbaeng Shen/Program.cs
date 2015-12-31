@@ -85,7 +85,7 @@ namespace Kimbaeng_Shen
             foreach (var hero in HeroManager.Allies)
             {
                     UltMenu.AddItem(new MenuItem("ultnotifiy" + hero.ChampionName, "Ult Notify to " + hero.ChampionName).SetValue(true));
-                    UltMenu.AddItem(new MenuItem("HP" + hero.ChampionName, "HP %").SetValue(new Slider(30, 0, 100)));
+                    UltMenu.AddItem(new MenuItem("HP" + hero.ChampionName, "HP %").SetValue(new Slider(40, 0, 100)));
                     UltMenu.AddItem(new MenuItem("priority" + hero.ChampionName, "Set Ult priority").SetValue(new Slider(4, 1, 5)));
                     Console.WriteLine(hero.ChampionName);   
             }
