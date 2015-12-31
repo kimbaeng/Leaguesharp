@@ -13,8 +13,6 @@ namespace Kimbaeng_KarThus
     {
         public static Menu _menu;
 
-        public static HpBarIndicator Hpi = new HpBarIndicator();
-
         private static Obj_AI_Hero Player;
 
         private static Orbwalking.Orbwalker _orbwalker;
@@ -34,8 +32,6 @@ namespace Kimbaeng_KarThus
         private static int LastPingT = 0;
 
         private const float SpellQWidth = 160f;
-
-        private const float SpellWWidth = 160f;
 
         public static SpellSlot IgniteSlot;
 
@@ -74,7 +70,7 @@ namespace Kimbaeng_KarThus
             var HitchanceMenu = _menu.AddSubMenu(new Menu("Hitchance", "Hitchance"));
             HitchanceMenu.AddItem(
                 new MenuItem("Hitchance", "Hitchance").SetValue(
-                    new StringList(new[] { "Low", "Medium", "High", "VeryHigh", "Impossible" }, 3)));
+                    new StringList(new[] { "Low", "Medium", "High", "VeryHigh", "Impossible" }, 4)));
 
             var comboMenu = _menu.AddSubMenu(new Menu("combo", "Combo"));
             comboMenu.AddItem(new MenuItem("useQ", "Use Q").SetValue(true));
@@ -109,6 +105,7 @@ namespace Kimbaeng_KarThus
 
             Drawing.OnDraw += Drawing_Ondraw;
             Game.OnUpdate += Game_OnUpdate;
+            Orbwalking.BeforeAttack += Orbwalking_BeforeAttack;
 
             Game.PrintChat("Kimbaeng<font color=\"#030066\">Karthus</font> Loaded");
             Game.PrintChat("If You like this Assembly plz <font color=\"#1DDB16\">Upvote</font> XD ");
@@ -152,7 +149,8 @@ namespace Kimbaeng_KarThus
             {
                 LastHit();
             }
-                RegulateEState();
+            RegulateEState();
+            PassiveForm();
         }
 
         private static void Drawing_Ondraw(EventArgs args)
@@ -188,23 +186,19 @@ namespace Kimbaeng_KarThus
 
         private static void AutoUlt()
         {
-            if (R.Instance.Level == 0 && !R.IsReady())
-            {
-                return;
-            }
-            else
-            {
-                foreach (var hero in
+            if (!R.IsReady()) return;
+            var pos = Drawing.WorldToScreen(ObjectManager.Player.Position)[1] + 20;
+            foreach (var hero in
                     ObjectManager.Get<Obj_AI_Hero>()
                         .Where(
                             x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.R) >= x.Health && x.IsValidTarget()))
-                {
-                    Drawing.DrawText(
-                        Drawing.WorldToScreen(Player.Position)[0] - 30,
-                        Drawing.WorldToScreen(Player.Position)[1] + 20,
-                        System.Drawing.Color.Gold,
-                        "Can Kill : " + hero.ChampionName);
-                }
+            {
+                Drawing.DrawText(
+                    Drawing.WorldToScreen(Player.Position)[0] - 30,
+                    pos,
+                    System.Drawing.Color.Gold,
+                    "Can Kill : " + hero.ChampionName);
+                    pos = pos + 20;
             }
         }
 
@@ -247,14 +241,10 @@ namespace Kimbaeng_KarThus
 
         private static void LastHit()
         {
-            if (!_menu.Item("useqlasthit").GetValue<bool>()) return;
-
-            if (!Orbwalking.CanMove(40))
+            if (!Orbwalking.CanMove(40) || !_menu.Item("useqlasthit").GetValue<bool>())
                 return;
 
-            var eminions = MinionManager.GetMinions(Player.ServerPosition,E.Range,MinionTypes.All,MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-            {
-
+                var eminions = MinionManager.GetMinions(Player.ServerPosition,E.Range,MinionTypes.All,MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
                 var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,
                 MinionTeam.NotAlly);
                 minions.RemoveAll(x => x.MaxHealth <= 5);
@@ -272,7 +262,6 @@ namespace Kimbaeng_KarThus
                 {
                     Farm();
                 }
-            }
             if (eminions.Count == 0)
             {
                 RegulateEState();
@@ -525,6 +514,20 @@ namespace Kimbaeng_KarThus
             else if (eTarget == null && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 1)
             {
                 E.Cast();
+            }
+        }
+
+        private static void Orbwalking_BeforeAttack(Orbwalking.BeforeAttackEventArgs args)
+        {
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+            {
+                args.Process = !Q.IsReady();
+            }
+            else if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+            {
+                var farmQ = _menu.Item("useqlasthit").GetValue<bool>();
+                args.Process =
+                    !(farmQ && Q.IsReady());
             }
         }
 
