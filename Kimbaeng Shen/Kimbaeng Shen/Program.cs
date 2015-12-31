@@ -108,6 +108,7 @@ namespace Kimbaeng_Shen
             Game.OnUpdate += Game_onUpdate;
             Drawing.OnDraw += Drawing_Ondraw;
             Obj_AI_Base.OnProcessSpellCast += OnProcessSpellCast;
+            Orbwalking.BeforeAttack += Orbwalking_BeforeAttack;
 
             Game.PrintChat("<font color=\"#672FBB\">Kimbaeng Shen</font> Loaded ");
             Game.PrintChat("If You like this Assembly plz <font color=\"#41FF3A\">Upvote</font> XD ");
@@ -164,6 +165,20 @@ namespace Kimbaeng_Shen
                 }
             }
             return;
+        }
+
+        private static void Orbwalking_BeforeAttack(Orbwalking.BeforeAttackEventArgs args)
+        {
+            if (_Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+            {
+                args.Process = !Q.IsReady();
+            }
+            else if (_Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+            {
+                var farmQ = _Menu.Item("useLHQ").GetValue<bool>();
+                args.Process =
+                    !(farmQ && Q.IsReady());
+            }
         }
 
 
