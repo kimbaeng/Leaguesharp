@@ -192,7 +192,7 @@ namespace Kimbaeng_Shen
             }
             if (E.IsReady() && useE && Target.IsValidTarget(E.Range))
             {
-                E.Cast(Target.Position);
+                E.CastIfHitchanceEquals(Target, HitChance.High);
             }
 
             if (IgniteSlot != SpellSlot.Unknown &&
@@ -287,27 +287,11 @@ namespace Kimbaeng_Shen
 
         private static void FlashECombo()
         {
-            //var FTarget = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
-            //var STarget = TargetSelector.GetTarget(EFlash.Range, TargetSelector.DamageType.Magical, false, FTarget != null ? new[] { FTarget } : null);
+            var FTarget = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
+            var STarget = TargetSelector.GetTarget(EFlash.Range, TargetSelector.DamageType.Magical, false, FTarget != null ? new[] { FTarget } : null);
             var EFTarget = TargetSelector.GetSelectedTarget();
 
-            //if (FTarget != null && STarget != null)
-            //{
-            //    if (E.IsReady() && FlashSlot != SpellSlot.Unknown
-            //        && ObjectManager.Player.Spellbook.CanUseSpell(FlashSlot) == SpellState.Ready)
-            //    {
-            //        var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, 600);
-            //        E.Cast(Endpos);
-
-            //    }
-
-            //    if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(STarget) < 410)
-            //    {
-            //        ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget.Position);
-            //    }
-            //}
-          
-            if (EFTarget != null) // one hit 
+            if (EFTarget != null)
             {
 
                 if (E.IsReady() && FlashSlot != SpellSlot.Unknown
@@ -317,11 +301,26 @@ namespace Kimbaeng_Shen
                 }
             }
 
-            if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 410)
+            if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 420)
             {
                 ObjectManager.Player.Spellbook.CastSpell(FlashSlot, EFTarget.Position);
             }
 
+            if (FTarget != null && STarget != null)
+            {
+                if (E.IsReady() && FlashSlot != SpellSlot.Unknown
+                    && ObjectManager.Player.Spellbook.CanUseSpell(FlashSlot) == SpellState.Ready)
+                {
+                    var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, 600);
+                    E.Cast(Endpos);
+
+                }
+
+                if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(STarget) < 420)
+                {
+                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget.Position);
+                }
+            }
 
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
         }
@@ -359,10 +358,12 @@ namespace Kimbaeng_Shen
             PingLocation = position;
             SimplePing();
 
-            Utility.DelayAction.Add(150, SimplePing);
+            Utility.DelayAction.Add(100, SimplePing);
             Utility.DelayAction.Add(300, SimplePing);
-            Utility.DelayAction.Add(400, SimplePing);
+            Utility.DelayAction.Add(600, SimplePing);
             Utility.DelayAction.Add(800, SimplePing);
+            Utility.DelayAction.Add(1200, SimplePing);
+
         }
         private static void SimplePing()
         {
@@ -386,25 +387,25 @@ namespace Kimbaeng_Shen
                     "EF Target");
             }
 
-            //if (FTarget != null && EFTarget == null)
-            //{
-            //    Render.Circle.DrawCircle(FTarget.Position, 50, System.Drawing.Color.Red);
-            //    Drawing.DrawText(
-            //       Drawing.WorldToScreen(FTarget.Position)[0] - 30,
-            //       Drawing.WorldToScreen(FTarget.Position)[1] + 20,
-            //       System.Drawing.Color.Red,
-            //       "First Target");
-            //}
+            if (FTarget != null && EFTarget == null)
+            {
+                Render.Circle.DrawCircle(FTarget.Position, 50, System.Drawing.Color.Red);
+                Drawing.DrawText(
+                   Drawing.WorldToScreen(FTarget.Position)[0] - 30,
+                   Drawing.WorldToScreen(FTarget.Position)[1] + 20,
+                   System.Drawing.Color.Red,
+                   "First Target");
+            }
 
-            //if (STarget != null && EFTarget == null)
-            //{
-            //    Render.Circle.DrawCircle(STarget.Position, 50, System.Drawing.Color.OrangeRed);
-            //    Drawing.DrawText(
-            //        Drawing.WorldToScreen(STarget.Position)[0] - 30,
-            //        Drawing.WorldToScreen(STarget.Position)[1] + 20,
-            //        System.Drawing.Color.OrangeRed,
-            //        "Second Target");
-            //}
+            if (STarget != null && EFTarget == null)
+            {
+                Render.Circle.DrawCircle(STarget.Position, 50, System.Drawing.Color.OrangeRed);
+                Drawing.DrawText(
+                    Drawing.WorldToScreen(STarget.Position)[0] - 30,
+                    Drawing.WorldToScreen(STarget.Position)[1] + 20,
+                    System.Drawing.Color.OrangeRed,
+                    "Second Target");
+            }
 
 
             if (_Menu.Item("noDraw").GetValue<bool>())
