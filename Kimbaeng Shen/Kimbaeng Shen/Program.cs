@@ -299,12 +299,13 @@ namespace Kimbaeng_Shen
                 {
                     E.Cast(EFTarget.Position);
                 }
+
+                if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 420)
+                {
+                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, EFTarget.Position);
+                }
             }
 
-            if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 420)
-            {
-                ObjectManager.Player.Spellbook.CastSpell(FlashSlot, EFTarget.Position);
-            }
 
             if (FTarget != null && STarget != null)
             {
@@ -325,6 +326,10 @@ namespace Kimbaeng_Shen
             ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
         }
 
+        static void UltLogic()
+        {
+            
+        }
         static void Auto()
         {
             var pos = Drawing.WorldToScreen(ObjectManager.Player.Position)[1] + 20;
