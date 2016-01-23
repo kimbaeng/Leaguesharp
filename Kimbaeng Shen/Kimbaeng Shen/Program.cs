@@ -294,16 +294,16 @@ namespace Kimbaeng_Shen
             if (EFTarget != null)
             {
 
+                if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 420)
+                {
+                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, EFTarget.Position);
+                }
                 if (E.IsReady() && FlashSlot != SpellSlot.Unknown
                     && ObjectManager.Player.Spellbook.CanUseSpell(FlashSlot) == SpellState.Ready && EFTarget.IsValidTarget(EFlash.Range))
                 {
                     E.Cast(EFTarget.Position);
                 }
 
-                if (ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(EFTarget.Position) < 420)
-                {
-                    ObjectManager.Player.Spellbook.CastSpell(FlashSlot, EFTarget.Position);
-                }
             }
 
 
