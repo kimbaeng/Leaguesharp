@@ -86,8 +86,8 @@ namespace Kimbaeng_Shen
             {
                     UltMenu.AddItem(new MenuItem("ultnotifiy" + hero.ChampionName, "Ult Notify to " + hero.ChampionName).SetValue(true));
                     UltMenu.AddItem(new MenuItem("HP" + hero.ChampionName, "HP %").SetValue(new Slider(40, 0, 100)));
-                    UltMenu.AddItem(new MenuItem("priority" + hero.ChampionName, "Set Ult priority").SetValue(new Slider(4, 1, 5)));
-                    Console.WriteLine(hero.ChampionName);   
+                    //UltMenu.AddItem(new MenuItem("priority" + hero.ChampionName, "Set Ult priority").SetValue(new Slider(4, 1, 5)));
+                    //Console.WriteLine(hero.ChampionName);   
             }
 
             MiscMenu.AddItem(new MenuItem("autow", "Auto Sheid W").SetValue(true));
@@ -373,6 +373,10 @@ namespace Kimbaeng_Shen
         private static void SimplePing()
         {
             Game.ShowPing(PingCategory.AssistMe, PingLocation, true);
+
+
+
+
         }
 
 

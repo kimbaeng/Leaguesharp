@@ -37,7 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LeagueSharp">
-      <HintPath>C:\Users\kimbaeng\Downloads\LeagueSharp\System\LeagueSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\Downloads\LeagueSharp\System\LeagueSharp.dll</HintPath>
     </Reference>
     <Reference Include="LeagueSharp.Common">
       <HintPath>C:\Users\kimbaeng\Downloads\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
