@@ -315,7 +315,7 @@ namespace Kimbaeng_Shen
                 }
 
                 if (E.IsReady() && FlashSlot != SpellSlot.Unknown
-                    && ObjectManager.Player.Spellbook.CanUseSpell(FlashSlot) == SpellState.Ready)
+                    && ObjectManager.Player.Spellbook.CanUseSpell(FlashSlot) == SpellState.Ready && FTarget.Distance(STarget) < 410)
                 {
                     //var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, 600);
                     //E.Cast(Endpos);
