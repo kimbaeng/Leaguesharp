@@ -309,17 +309,17 @@ namespace Kimbaeng_Shen
 
             if (FTarget != null && STarget != null)
             {
-                if (E.IsReady() && FlashSlot != SpellSlot.Unknown
-                    && ObjectManager.Player.Spellbook.CanUseSpell(FlashSlot) == SpellState.Ready)
-                {
-                    var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, 600);
-                    E.Cast(Endpos);
-
-                }
-
                 if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(STarget) < 420)
                 {
                     ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget.Position);
+                }
+
+                if (E.IsReady() && FlashSlot != SpellSlot.Unknown
+                    && ObjectManager.Player.Spellbook.CanUseSpell(FlashSlot) == SpellState.Ready)
+                {
+                    //var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, 600);
+                    //E.Cast(Endpos);
+                    E.CastIfHitchanceEquals(FTarget, HitChance.High);
                 }
             }
 
