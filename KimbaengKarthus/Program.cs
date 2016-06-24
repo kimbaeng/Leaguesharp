@@ -204,7 +204,7 @@ namespace Kimbaeng_KarThus
 
         private static void NotifyPing()
         {
-            if (R.Instance.Level == 0 && !R.IsReady())
+            if (R.Instance.Level == 0)
             {
                 return;
             }

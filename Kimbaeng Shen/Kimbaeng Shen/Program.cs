@@ -45,7 +45,7 @@ namespace Kimbaeng_Shen
             EFlash.SetSkillshot(
                 E.Instance.SData.SpellCastTime, E.Instance.SData.LineWidth, E.Speed, false, SkillshotType.SkillshotLine);
 
-            Q.SetTargetted(0.15f, float.MaxValue);
+            Q.SetSkillshot(0f, 150f, float.MaxValue, false, SkillshotType.SkillshotLine);
             E.SetSkillshot(0.25f, 150f, float.MaxValue, false, SkillshotType.SkillshotLine);
             IgniteSlot = ObjectManager.Player.GetSpellSlot("SummonerDot");
             FlashSlot = ObjectManager.Player.GetSpellSlot("SummonerFlash");
@@ -101,7 +101,6 @@ namespace Kimbaeng_Shen
             Game.OnUpdate += Game_onUpdate;
             Drawing.OnDraw += Drawing_Ondraw;
             Obj_AI_Base.OnProcessSpellCast += OnProcessSpellCast;
-            Orbwalking.BeforeAttack += Orbwalking_BeforeAttack;
 
             Game.PrintChat("<font color=\"#672FBB\">Kimbaeng Shen</font> Loaded ");
             Game.PrintChat("If You like this Assembly plz <font color=\"#41FF3A\">Upvote</font> XD ");
@@ -162,19 +161,6 @@ namespace Kimbaeng_Shen
             return;
         }
 
-        private static void Orbwalking_BeforeAttack(Orbwalking.BeforeAttackEventArgs args)
-        {
-            if (_Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
-            {
-                args.Process = !Q.IsReady();
-            }
-            else if (_Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
-            {
-                var farmQ = _Menu.Item("useLHQ").GetValue<bool>();
-                args.Process =
-                    !(farmQ && Q.IsReady());
-            }
-        }
 
 
         private static void Combo()
@@ -235,19 +221,8 @@ namespace Kimbaeng_Shen
 
             if (useQ && Q.IsReady() && Minions.Count > 0)
             {
-                if (Minions[0].Health < ObjectManager.Player.GetSpellDamage(Minions[0], SpellSlot.Q))
-                    Q.Cast(Minions[0]);
-            }
+                Q.Cast();
 
-            if (junglemobs.Count > 0)
-            {
-                if (useQ && Q.IsReady() && junglemobs[0].Health < ObjectManager.Player.GetSpellDamage(junglemobs[0], SpellSlot.Q))
-                    Q.Cast(junglemobs[0]);
-
-                if (W.IsReady() && useW)
-                {
-                    W.Cast();
-                }
             }
         }
 
@@ -316,7 +291,7 @@ namespace Kimbaeng_Shen
                 
                     //var Endpos = ObjectManager.Player.Position.Extend(FTarget.Position, 600);
                     //E.Cast(Endpos);
-                    E.CastIfHitchanceEquals(FTarget, HitChance.High);
+                    E.CastIfHitchanceEquals(FTarget, HitChance.High); 
                 if (FTarget.HasBuffOfType(BuffType.Taunt) && ObjectManager.Player.IsDashing() && ObjectManager.Player.Distance(STarget) < 420)
 
                     ObjectManager.Player.Spellbook.CastSpell(FlashSlot, STarget.Position);
