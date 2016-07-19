@@ -347,7 +347,6 @@ namespace Kimbaeng_KarThus
 
         private static void Combo()
         {
-           // var ITarget = TargetSelector.GetTarget(600f, TargetSelector.DamageType.Magical);
             var wTarget = TargetSelector.GetTarget(W.Range, TargetSelector.DamageType.Magical);
             var eTarget = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
             var UseQ = _menu.Item("useQ").GetValue<bool>();
@@ -397,25 +396,24 @@ namespace Kimbaeng_KarThus
                 Q.CastIfHitchanceEquals(qTarget, HC, true);
             }
 
-    //        if (IgniteSlot != SpellSlot.Unknown &&
-    //ObjectManager.Player.Spellbook.CanUseSpell(IgniteSlot) == SpellState.Ready &&
-    //ObjectManager.Player.Distance(ITarget.ServerPosition) < 600 &&
-    //Player.GetSummonerSpellDamage(ITarget, Damage.SummonerSpell.Ignite) > ITarget.Health)
-    //        {
-    //            ObjectManager.Player.Spellbook.CastSpell(IgniteSlot, ITarget);
-    //        }
+            if (IgniteSlot != SpellSlot.Unknown &&
+    ObjectManager.Player.Spellbook.CanUseSpell(IgniteSlot) == SpellState.Ready &&
+    ObjectManager.Player.Distance(wTarget.ServerPosition) < 600 &&
+    Player.GetSummonerSpellDamage(wTarget, Damage.SummonerSpell.Ignite) > wTarget.Health)
+            {
+                ObjectManager.Player.Spellbook.CastSpell(IgniteSlot, wTarget);
+            }
 
         }
 
         private static void Harass()
         {
-            var qTarget = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
             var eTarget = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
             var UseQ = _menu.Item("useQHarass").GetValue<bool>();
             var UseE = _menu.Item("useEHarass").GetValue<bool>();
 
             var HC = HitChance.VeryHigh;
-            if (qTarget != null && UseQ && Q.IsReady())
+            if (UseQ && Q.IsReady())
             {
                 switch (_menu.Item("Hitchance").GetValue<StringList>().SelectedIndex)
                 {
@@ -435,8 +433,11 @@ namespace Kimbaeng_KarThus
                         HC = HitChance.Impossible;
                         break;
                 }
+                var qTarget = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
                 Q.CastIfHitchanceEquals(qTarget, HC, true);
+
             }
+
             if (eTarget != null && UseE && E.IsReady() && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
             {
                 E.Cast();
