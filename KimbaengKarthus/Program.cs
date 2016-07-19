@@ -102,6 +102,14 @@ namespace Kimbaeng_KarThus
             DrawMenu.AddItem(new MenuItem("drawQ", "DrawQ").SetValue(new Circle(true, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawW", "DrawW").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
             DrawMenu.AddItem(new MenuItem("drawE", "DrawE").SetValue(new Circle(false, System.Drawing.Color.Goldenrod)));
+            DrawMenu.SubMenu("Draw Damage").AddItem(new MenuItem("damagedraw", "Draw Combo Damage").SetValue(true));
+            DrawMenu.SubMenu("Draw Damage").AddItem(new MenuItem("damagedrawfill", "Fill Color").SetValue(new Circle(true, System.Drawing.Color.Gold)));
+
+            damageindicator.DamageToUnit = TotalDamage;
+            damageindicator.Enabled = DrawMenu.SubMenu("Draw Damage").Item("damagedraw").GetValue<bool>();
+            damageindicator.Fill = DrawMenu.SubMenu("Draw Damage").Item("damagedrawfill").GetValue<Circle>().Active;
+            damageindicator.FillColor = DrawMenu.SubMenu("Draw Damage").Item("damagedrawfill").GetValue<Circle>().Color;
+
 
             Drawing.OnDraw += Drawing_Ondraw;
             Game.OnUpdate += Game_OnUpdate;
@@ -413,6 +421,27 @@ namespace Kimbaeng_KarThus
         private static void SimplePing()
         {
             Game.ShowPing(PingCategory.Fallback, PingLocation, true);
+        }
+        private static float TotalDamage(Obj_AI_Hero hero)
+        {
+            var damage = 0d;
+            if (Q.IsReady())
+            {
+                damage += Q.GetDamage(hero);
+            }
+            if (W.IsReady())
+            {
+                damage += W.GetDamage(hero);
+            }
+            if (E.IsReady())
+            {
+                damage += W.GetDamage(hero);
+            }
+            if (R.IsReady())
+            {
+                damage += R.GetDamage(hero);
+            }
+            return (float)damage;
         }
 
         private static void Combo()
