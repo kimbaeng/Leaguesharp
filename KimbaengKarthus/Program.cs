@@ -8,6 +8,7 @@ using SharpDX;
 
 namespace Kimbaeng_KarThus
 {
+    using SharpDX.Direct3D9;
 
     internal class Program
     {
@@ -48,7 +49,7 @@ namespace Kimbaeng_KarThus
             Player = ObjectManager.Player;
             IgniteSlot = ObjectManager.Player.GetSpellSlot("SummonerDot");
             Q = new Spell(SpellSlot.Q, 875f);
-            W = new Spell(SpellSlot.W, 1000f);
+            W = new Spell(SpellSlot.W, 990f);
             E = new Spell(SpellSlot.E, 425f);
             R = new Spell(SpellSlot.R, float.MaxValue);
 
@@ -228,138 +229,38 @@ namespace Kimbaeng_KarThus
         }
 
 
-        private static void Farm()
-        {
-            ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
-
-            var allMinions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
-            if (Q.IsReady())
-            {
-                foreach (
-                    var minion in
-                        allMinions.Where(
-                            x =>
-                            Player.GetSpellDamage(x, SpellSlot.Q) >= HealthPrediction.GetHealthPrediction(x, (int)(800)))
-                    )
-                {
-                    FarmCast(minion);
-                }
-            }
-        }
 
         private static void LastHit()
         {
-            if (!Orbwalking.CanMove(100) || !_menu.Item("useqlasthit").GetValue<bool>())
-                return;
+            if (!Orbwalking.CanMove(40)) return;
 
-            var eminions = MinionManager.GetMinions(Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-            var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,
-            MinionTeam.NotAlly);
+            var minions = MinionManager.GetMinions(Player.ServerPosition, Q.Range, MinionTypes.All, MinionTeam.NotAlly);
             minions.RemoveAll(x => x.MaxHealth <= 5);
-            if (minions.Count > 3)
+
+            foreach (var minion in
+                minions.Where(
+                    x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
+                    HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
             {
-                foreach (var minion in
-                    minions.Where(
-                        x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
-                        HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
-                {
-                    Q.Cast(minion);
-                }
-            }
-            else
-            {
-                Farm();
-            }
-            if (eminions.Count == 0)
-            {
-                RegulateEState();
+                Q.Cast(minion);
             }
         }
 
         private static void LaneClear()
         {
+            var minions = MinionManager.GetMinions(Player.ServerPosition, Q.Range, MinionTypes.All, MinionTeam.Enemy, MinionOrderTypes.Health);
 
-            List<Obj_AI_Base> minions;
+            if (!minions.Any())
+                return;
 
-            bool jungleMobs;
-            if (Q.IsReady())
+            var minion = minions.First();
+
+            if (Q.IsReady() && minion.IsValidTarget(Q.Range))
             {
-                minions = MinionManager.GetMinions(
-                    ObjectManager.Player.ServerPosition,
-                    Q.Range,
-                    MinionTypes.All,
-                    MinionTeam.NotAlly);
-                var eminions = MinionManager.GetMinions(
-                    ObjectManager.Player.ServerPosition,
-                    E.Range,
-                    MinionTypes.All,
-                    MinionTeam.NotAlly);
-                minions.RemoveAll(x => x.MaxHealth <= 5);
-
-                jungleMobs = minions.Any(x => x.Team == GameObjectTeam.Neutral);
-
-                Q.Width = SpellQWidth;
-                var farmInfo = Q.GetCircularFarmLocation(minions, Q.Width);
-
-                if (farmInfo.MinionsHit >= 1)
-                {
-                    Q.Cast(farmInfo.Position, jungleMobs);
-                }
-                if (farmInfo.MinionsHit >= 3)
-                {
-                    E.Cast();
-                }
-                else if (eminions.Count == 0)
-                {
-                    RegulateEState();
-                }
+                Q.Cast(minion.ServerPosition);
             }
         }
-
-        public static Vector3 FindHitPosition(PredictionOutput minion)
-        {
-            int multihit = 1;
-            for (int i = -100; i < 100; i = i + 10)
-            {
-                for (int a = -100; a < 100; a = a + 10)
-                {
-                    Vector3 tempposition = new Vector3(
-                        minion.UnitPosition.X + i,
-                        minion.UnitPosition.Y + a,
-                        minion.UnitPosition.Z);
-                    multihit = CheckMultiHit(tempposition);
-                    if (multihit == 1)
-                    {
-                        return tempposition;
-                    }
-                }
-            }
-            return new Vector3(0, 0, 0);
-        }
-
-        private static int CheckMultiHit(Vector3 minion)
-        {
-            var count = 0;
-            var allMinions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range);
-            foreach (Obj_AI_Base minionvar in
-                allMinions.Where(x => Vector3.Distance(minion, Prediction.GetPrediction(x, 250f).UnitPosition) < 200))
-            {
-                count++;
-            }
-
-
-            return count;
-        }
-
-        private static void FarmCast(Obj_AI_Base minion)
-        {
-            var position = FindHitPosition(Prediction.GetPrediction(minion, 250f));
-            if (!(position.X == 0 && position.Y == 0 && position.Z == 0))
-            {
-                Q.Cast(position);
-            }
-        }
-
+    
         private static void RegulateEState(bool ignoreTargetChecks = false)
         {
             if (_menu.Item("estate").GetValue<bool>())
@@ -446,13 +347,32 @@ namespace Kimbaeng_KarThus
 
         private static void Combo()
         {
-            var qTarget = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
+           // var ITarget = TargetSelector.GetTarget(600f, TargetSelector.DamageType.Magical);
             var wTarget = TargetSelector.GetTarget(W.Range, TargetSelector.DamageType.Magical);
             var eTarget = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
             var UseQ = _menu.Item("useQ").GetValue<bool>();
             var UseW = _menu.Item("useW").GetValue<bool>();
             var UseE = _menu.Item("useE").GetValue<bool>();
-            if (qTarget != null && UseQ && Q.IsReady() && qTarget.IsValidTarget())
+
+            if (wTarget != null && UseW && W.IsReady())
+            {
+                W.Cast(wTarget, false, true);
+            }
+
+            if (eTarget != null && UseE && E.IsReady() && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
+            {
+                if (ObjectManager.Player.Distance(eTarget.ServerPosition) <= E.Range)
+                {
+                    _comboE = true;
+                    E.Cast();
+                }
+            }
+
+            else if (eTarget == null && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 1)
+            {
+                E.Cast();
+            }
+            if (UseQ && Q.IsReady()) 
             {
                 var HC = HitChance.VeryHigh;
                 switch (_menu.Item("Hitchance").GetValue<StringList>().SelectedIndex)
@@ -473,33 +393,18 @@ namespace Kimbaeng_KarThus
                         HC = HitChance.Impossible;
                         break;
                 }
+                var qTarget = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
                 Q.CastIfHitchanceEquals(qTarget, HC, true);
             }
-            if (eTarget != null && UseE && E.IsReady() && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
-            {
-                if (ObjectManager.Player.Distance(eTarget.ServerPosition) <= E.Range)
-                {
-                    _comboE = true;
-                    E.Cast();
-                }
-            }
-            else if (eTarget == null && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 1)
-            {
-                E.Cast();
-            }
 
-            if (wTarget != null && UseW && W.IsReady() && wTarget.IsValidTarget())
-            {
-                W.Cast(wTarget, false, true);
-            }
+    //        if (IgniteSlot != SpellSlot.Unknown &&
+    //ObjectManager.Player.Spellbook.CanUseSpell(IgniteSlot) == SpellState.Ready &&
+    //ObjectManager.Player.Distance(ITarget.ServerPosition) < 600 &&
+    //Player.GetSummonerSpellDamage(ITarget, Damage.SummonerSpell.Ignite) > ITarget.Health)
+    //        {
+    //            ObjectManager.Player.Spellbook.CastSpell(IgniteSlot, ITarget);
+    //        }
 
-            if (IgniteSlot != SpellSlot.Unknown &&
-                ObjectManager.Player.Spellbook.CanUseSpell(IgniteSlot) == SpellState.Ready &&
-                ObjectManager.Player.Distance(qTarget.ServerPosition) < 600 &&
-                Player.GetSummonerSpellDamage(qTarget, Damage.SummonerSpell.Ignite) > qTarget.Health)
-            {
-                ObjectManager.Player.Spellbook.CastSpell(IgniteSlot, qTarget);
-            }
         }
 
         private static void Harass()
