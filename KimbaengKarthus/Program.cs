@@ -42,22 +42,22 @@ namespace Kimbaeng_KarThus
 
         private static void Game_OnGameLoad(EventArgs args)
         {
-            if (ObjectManager.Player.ChampionName != "Karthus")
-            {
-                return;
-            }
+            if (ObjectManager.Player.ChampionName != "Karthus") return;
+
 
             Player = ObjectManager.Player;
             IgniteSlot = ObjectManager.Player.GetSpellSlot("SummonerDot");
-            Q = new Spell(SpellSlot.Q, 875);
-            W = new Spell(SpellSlot.W, 1000);
-            E = new Spell(SpellSlot.E, 550);
-            R = new Spell(SpellSlot.R, 20000f);
+            Q = new Spell(SpellSlot.Q, 875f);
+            W = new Spell(SpellSlot.W, 1000f);
+            E = new Spell(SpellSlot.E, 425f);
+            R = new Spell(SpellSlot.R, float.MaxValue);
 
-            Q.SetSkillshot(0.66f, 160f, 2000, false, SkillshotType.SkillshotCircle);
-            W.SetSkillshot(0.65f, 100f, 1600f, false, SkillshotType.SkillshotLine);
-            E.SetSkillshot(1f, 505, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            Q.SetSkillshot(1f, 150f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0.25f, 5f, float.MaxValue, false, SkillshotType.SkillshotLine);
+            E.SetSkillshot(1f, 520f, float.MaxValue, false, SkillshotType.SkillshotCircle);
             R.SetSkillshot(3f, float.MaxValue, float.MaxValue, false, SkillshotType.SkillshotCircle);
+
+
             (_menu = new Menu("Kimbaeng Karthus", "kimbaengkarthus", true)).AddToMainMenu();
 
             var targetSelectorMenu = new Menu("Target Selector", "TargetSelector");
@@ -70,7 +70,7 @@ namespace Kimbaeng_KarThus
             var HitchanceMenu = _menu.AddSubMenu(new Menu("Hitchance", "Hitchance"));
             HitchanceMenu.AddItem(
                 new MenuItem("Hitchance", "Hitchance").SetValue(
-                    new StringList(new[] { "Low", "Medium", "High", "VeryHigh", "Impossible" }, 4)));
+                    new StringList(new[] { "Low", "Medium", "High", "VeryHigh", "Impossible" }, 3)));
 
             var comboMenu = _menu.AddSubMenu(new Menu("combo", "Combo"));
             comboMenu.AddItem(new MenuItem("useQ", "Use Q").SetValue(true));
@@ -167,19 +167,19 @@ namespace Kimbaeng_KarThus
             if (qValue.Active)
             {
                 if (Q.Instance.Level != 0)
-                Render.Circle.DrawCircle(ObjectManager.Player.Position, Q.Range, qValue.Color);
+                    Render.Circle.DrawCircle(ObjectManager.Player.Position, Q.Range, qValue.Color);
             }
 
             if (wValue.Active)
             {
                 if (W.Instance.Level != 0)
-                Render.Circle.DrawCircle(ObjectManager.Player.Position, W.Range, wValue.Color);
+                    Render.Circle.DrawCircle(ObjectManager.Player.Position, W.Range, wValue.Color);
             }
 
             if (eValue.Active)
             {
                 if (E.Instance.Level != 0)
-                Render.Circle.DrawCircle(ObjectManager.Player.Position, E.Range, eValue.Color);
+                    Render.Circle.DrawCircle(ObjectManager.Player.Position, E.Range, eValue.Color);
             }
 
         }
@@ -198,7 +198,7 @@ namespace Kimbaeng_KarThus
                     pos,
                     System.Drawing.Color.Gold,
                     "Can Kill : " + hero.ChampionName);
-                    pos = pos + 20;
+                pos += 20;
             }
         }
 
@@ -241,27 +241,27 @@ namespace Kimbaeng_KarThus
 
         private static void LastHit()
         {
-            if (!Orbwalking.CanMove(40) || !_menu.Item("useqlasthit").GetValue<bool>())
+            if (!Orbwalking.CanMove(100) || !_menu.Item("useqlasthit").GetValue<bool>())
                 return;
 
-                var eminions = MinionManager.GetMinions(Player.ServerPosition,E.Range,MinionTypes.All,MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-                var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,
-                MinionTeam.NotAlly);
-                minions.RemoveAll(x => x.MaxHealth <= 5);
-                if (minions.Count > 3)
+            var eminions = MinionManager.GetMinions(Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+            var minions = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All,
+            MinionTeam.NotAlly);
+            minions.RemoveAll(x => x.MaxHealth <= 5);
+            if (minions.Count > 3)
+            {
+                foreach (var minion in
+                    minions.Where(
+                        x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
+                        HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
                 {
-                    foreach (var minion in
-                        minions.Where(
-                            x => ObjectManager.Player.GetSpellDamage(x, SpellSlot.Q, 1) >=
-                            HealthPrediction.GetHealthPrediction(x, (int)(Q.Delay * 1000))))
-                    {
-                        Q.Cast(minion);
-                    }
+                    Q.Cast(minion);
                 }
-                else
-                {
-                    Farm();
-                }
+            }
+            else
+            {
+                Farm();
+            }
             if (eminions.Count == 0)
             {
                 RegulateEState();
@@ -369,10 +369,6 @@ namespace Kimbaeng_KarThus
                 E.CastOnUnit(ObjectManager.Player);
                 _comboE = false;
             }
-            else
-            {
-                return;
-            }
         }
 
         private static bool IsInPassiveForm()
@@ -398,7 +394,7 @@ namespace Kimbaeng_KarThus
 
         }
 
-    private static void Ping(Vector2 position)
+        private static void Ping(Vector2 position)
         {
             if (LeagueSharp.Common.Utils.TickCount - LastPingT < 30 * 1000)
             {
@@ -427,9 +423,9 @@ namespace Kimbaeng_KarThus
             var UseQ = _menu.Item("useQ").GetValue<bool>();
             var UseW = _menu.Item("useW").GetValue<bool>();
             var UseE = _menu.Item("useE").GetValue<bool>();
-            if (qTarget != null &&  UseQ && Q.IsReady() && qTarget.IsValidTarget())
+            if (qTarget != null && UseQ && Q.IsReady() && qTarget.IsValidTarget())
             {
-               var HC = HitChance.VeryHigh;
+                var HC = HitChance.VeryHigh;
                 switch (_menu.Item("Hitchance").GetValue<StringList>().SelectedIndex)
                 {
                     case 0: //Low
@@ -457,13 +453,13 @@ namespace Kimbaeng_KarThus
                     _comboE = true;
                     E.Cast();
                 }
-                }
-                else if (eTarget == null && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 1)
-                {
+            }
+            else if (eTarget == null && ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).ToggleState != 1)
+            {
                 E.Cast();
-                }
+            }
 
-            if (wTarget != null && UseW  && W.IsReady() && wTarget.IsValidTarget())
+            if (wTarget != null && UseW && W.IsReady() && wTarget.IsValidTarget())
             {
                 W.Cast(wTarget, false, true);
             }
